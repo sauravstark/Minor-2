@@ -1,10 +1,9 @@
 #include <functional>
 
 #include <emscripten.h>
-#include <SDL.h>
 
-#define GL_GLEXT_PROTOTYPES 1
-#include <SDL_opengles2.h>
+
+#include "includes/game.hpp"
 
 // Shader sources
 const GLchar* vertexSource =
@@ -33,6 +32,7 @@ void main_loop() { loop(); }
 
 int main()
 {
+	/*
     SDL_Window *window;
     SDL_CreateWindowAndRenderer(640, 480, 0, &window, nullptr);
 
@@ -71,9 +71,17 @@ int main()
     GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
     glEnableVertexAttribArray(posAttrib);
     glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	*/
+
+	Game game;
 
     loop = [&]
     {
+		game.Update();
+		game.LateUpdate();
+		game.Draw();
+
+		/*
         // move a vertex
         const uint32_t milliseconds_since_start = SDL_GetTicks();
         const uint32_t milliseconds_per_loop = 3000;
@@ -91,6 +99,7 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         SDL_GL_SwapWindow(window);
+		*/
     };
 
     emscripten_set_main_loop(main_loop, 0, true);
