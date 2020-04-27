@@ -1,11 +1,11 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
-#include "window.hpp"
+#include "renderer.hpp"
 
 class Game {
 private:
-	Window window;
+	Renderer renderer;
 	
 public:
 	Game();
@@ -19,7 +19,7 @@ Game::Game() {
 }
 
 void Game::Update() {
-	window.update();
+	renderer.update();
 }
 
 void Game::LateUpdate() {
@@ -28,9 +28,7 @@ void Game::LateUpdate() {
 
 void Game::Draw() {
 	
-	window.beginDraw();
-	window.draw();
-	window.endDraw();
+	renderer.draw();
 }
 
 #endif // !GAME_HPP
