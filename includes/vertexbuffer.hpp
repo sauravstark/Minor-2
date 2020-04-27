@@ -2,22 +2,16 @@
 #define VERTEX_BUFFER_HPP
 
 #include "glessential.hpp"
-
-struct Vertex {
-	float pos_x, pos_y, pos_z;
-	float rot_x, rot_y, rot_z;
-	float sca_x, sca_y, sca_z;
-	float col_r, col_g, col_b, col_a;
-};
+#include "vertex.hpp"
 
 class VertexBuffer {
 public:
-    unsigned int id;
-    VertexBuffer(unsigned int shaderID);
+    GLuint id;
+    VertexBuffer(GLuint shaderID);
     void refresh(Vertex* ptr);
 };
 
-VertexBuffer::VertexBuffer(unsigned int shaderID) {
+VertexBuffer::VertexBuffer(GLuint shaderID) {
     GLCall(glGenBuffers(1, &id));
     glBindBuffer(GL_ARRAY_BUFFER, id);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 6, nullptr, GL_STATIC_DRAW);

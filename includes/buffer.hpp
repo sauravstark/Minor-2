@@ -3,37 +3,22 @@
 
 #include "glessential.hpp"
 #include "vertexbuffer.hpp"
+#include "indexbuffer.hpp"
 
 class Buffer {
+private:
+	VertexBuffer vertexBuffer;
+	IndexBuffer indexBuffer;
+
 public:
     Buffer(unsigned int shaderID);
+	void refresh(Vertex *ptr);
 };
 
-Buffer::Buffer(unsigned int shaderID) {
-    Vertex vertices[4] = {
-		{ -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f },
-		{  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f },
-		{ -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+Buffer::Buffer(unsigned int shaderID) : vertexBuffer(VertexBuffer(shaderID)){}
 
-		//{  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f },
-		//{ -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f },
-		{  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f }
-	};
-
-	unsigned int indices_array[6] = {
-		0, 1, 2,
-		1, 2, 3
-	};
-
-    // Create a Vertex Buffer Object and copy the vertex data to it
-	GLuint ibo;
-	GLCall(glGenBuffers(1, &ibo));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices_array, GL_DYNAMIC_DRAW));
-
-	VertexBuffer vertexBuffer(shaderID);
-	vertexBuffer.refresh(vertices);
-
+void Buffer::refresh(Vertex *ptr) {
+	vertexBuffer.refresh(ptr);
 }
 
 #endif //BUFFER_HPP
