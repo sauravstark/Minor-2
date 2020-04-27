@@ -29,21 +29,34 @@ Renderer::Renderer() {
 
 	Shader shader("./shaders/vertex.shader", "./shaders/fragment.shader");
 	shader.use();
-	Buffer buffer(shader.getID());
+	Buffer buffer;
 
-	Vertex vertices[4] = {
-		{ -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f },
-		{  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f },
-		{ -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+	Vertex vertices[16] = {
+		{ -0.75f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+		{ -0.25f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+		{ -0.75f, -0.25f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
+		{ -0.25f, -0.25f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
 
-		//{  0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f },
-		//{ -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f },
-		{  0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f }
+		{  0.75f, -0.75f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f },
+		{  0.25f, -0.75f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f },
+		{  0.75f, -0.25f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f },
+		{  0.25f, -0.25f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f },
+		
+		{ -0.75f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f },
+		{ -0.25f,  0.75f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f },
+		{ -0.75f,  0.25f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f },
+		{ -0.25f,  0.25f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f },
+
+		{  0.75f,  0.75f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f },
+		{  0.25f,  0.75f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f },
+		{  0.75f,  0.25f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f },
+		{  0.25f,  0.25f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f }
+		
 	};
 
 	buffer.refresh(vertices);
 	
-	glClearColor(0.745f, 0.416f, 0.651f, 0.925f);
+	//glClearColor(0.745f, 0.416f, 0.651f, 0.925f);
 }
 
 void Renderer::update() {
@@ -58,7 +71,7 @@ void Renderer::update() {
 void Renderer::draw() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	//glDrawArrays(GL_TRIANGLES, 0, 6);
-	GLCall(glDrawElements(GL_TRIANGLES, 6,  GL_UNSIGNED_INT, nullptr));
+	GLCall(glDrawElements(GL_TRIANGLES, 24,  GL_UNSIGNED_INT, nullptr));
 	SDL_GL_SwapWindow(window);
 }
 

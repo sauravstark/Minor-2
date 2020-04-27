@@ -1,4 +1,4 @@
-attribute vec2 aPosition;
+attribute vec3 aPosition;
 attribute vec4 aColor;
 
 varying vec4 ourColor;

@@ -7,8 +7,6 @@
 
 struct Vertex {
 	float pos_x, pos_y, pos_z;
-	float rot_x, rot_y, rot_z;
-	float sca_x, sca_y, sca_z;
 	float col_r, col_g, col_b, col_a;
 };
 

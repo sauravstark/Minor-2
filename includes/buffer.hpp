@@ -11,11 +11,8 @@ private:
 	IndexBuffer indexBuffer;
 
 public:
-    Buffer(unsigned int shaderID);
 	void refresh(Vertex *ptr);
 };
-
-Buffer::Buffer(unsigned int shaderID) : vertexBuffer(VertexBuffer(shaderID)){}
 
 void Buffer::refresh(Vertex *ptr) {
 	vertexBuffer.refresh(ptr);
