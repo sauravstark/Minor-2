@@ -1,35 +1,22 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
-#include <SDL.h>
 #include "shader.hpp"
 #include "buffer.hpp"
 
-#define GL_GLEXT_PROTOTYPES 1
-#include <SDL_opengles2.h>
-
 class Renderer {
 private:
-	SDL_Window* window;
+	Shader shader;
+	Buffer buffer;
 public:
 	Renderer();
 	void update();
 	void draw();
 };
 
-Renderer::Renderer() {
-	SDL_CreateWindowAndRenderer(1920, 1080, 0, &window, nullptr);
-
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-	std::cout << glGetString(GL_VERSION) << std::endl;
-
-	Shader shader("./shaders/vertex.shader", "./shaders/fragment.shader");
+Renderer::Renderer() :
+	shader(Shader("./shaders/vertex.shader", "./shaders/fragment.shader")) {
 	shader.use();
-	Buffer buffer;
 
 	Vertex vertices[16] = {
 		{ -0.75f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
@@ -56,7 +43,7 @@ Renderer::Renderer() {
 
 	buffer.refresh(vertices);
 	
-	//glClearColor(0.745f, 0.416f, 0.651f, 0.925f);
+	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void Renderer::update() {
@@ -72,7 +59,6 @@ void Renderer::draw() {
 	glClear(GL_COLOR_BUFFER_BIT);
 	//glDrawArrays(GL_TRIANGLES, 0, 6);
 	GLCall(glDrawElements(GL_TRIANGLES, 24,  GL_UNSIGNED_INT, nullptr));
-	SDL_GL_SwapWindow(window);
 }
 
 #endif //!RENDERER_HPP
