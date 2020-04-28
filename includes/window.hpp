@@ -3,6 +3,7 @@
 
 #include "renderer.hpp"
 #include <SDL.h>
+#include <vector>
 
 class Window {
 private:
@@ -11,7 +12,7 @@ private:
 public:
     Window();
     void update();
-    void draw();
+    void draw(std::vector<Vertex> &vertices);
 };
 
 Window::Window() {
@@ -31,8 +32,8 @@ void Window::update() {
 
 }
 
-void Window::draw() {
-    renderer->draw();
+void Window::draw(std::vector<Vertex> &vertices) {
+    renderer->draw(vertices);
     SDL_GL_SwapWindow(window);
 }
 

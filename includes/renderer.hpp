@@ -3,6 +3,7 @@
 
 #include "shader.hpp"
 #include "buffer.hpp"
+#include <vector>
 
 class Renderer {
 private:
@@ -11,12 +12,13 @@ private:
 public:
 	Renderer();
 	void update();
-	void draw();
+	void draw(std::vector<Vertex> &vertices);
 };
 
 Renderer::Renderer() :
 	shader(Shader("./shaders/vertex.shader", "./shaders/fragment.shader")) {
 	shader.use();
+	/*
 
 	Vertex vertices[16] = {
 		{ -0.75f, -0.75f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f },
@@ -42,8 +44,9 @@ Renderer::Renderer() :
 	};
 
 	buffer.refresh(vertices);
+	*/
 	
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void Renderer::update() {
@@ -55,10 +58,22 @@ void Renderer::update() {
 	*/
 }
 
-void Renderer::draw() {
+void Renderer::draw(std::vector<Vertex> &vertices) {
+	unsigned int quad_count = vertices.size() / 4;
+	Vertex *ptr = vertices.data();
+
 	glClear(GL_COLOR_BUFFER_BIT);
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
-	GLCall(glDrawElements(GL_TRIANGLES, 24,  GL_UNSIGNED_INT, nullptr));
+
+	while (quad_count > MaxQuadCount) {
+		buffer.refresh(ptr);
+		GLCall(glDrawElements(GL_TRIANGLES, MaxIndicesCount,  GL_UNSIGNED_INT, nullptr));
+
+		ptr += MaxVertexCount;
+		quad_count -= MaxQuadCount;
+	}
+	
+	buffer.refresh(ptr);
+	GLCall(glDrawElements(GL_TRIANGLES, quad_count * 6,  GL_UNSIGNED_INT, nullptr));
 }
 
 #endif //!RENDERER_HPP

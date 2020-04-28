@@ -1,8 +1,7 @@
-#ifndef INDEX_BUFFER_HPP
-#define INDEX_BUFFER_HPP
+#ifndef BUFFER_INDEX_HPP
+#define BUFFER_INDEX_HPP
 
-#include "glessential.hpp"
-#include <vector>
+#include "vertex.hpp"
 
 class IndexBuffer {
 public:
@@ -28,4 +27,4 @@ IndexBuffer::IndexBuffer() {
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, MaxIndicesCount * sizeof(unsigned int), indices_array, GL_DYNAMIC_DRAW));
 }
 
-#endif //!INDEX_BUFFER_HPP
+#endif //!BUFFER_INDEX_HPP

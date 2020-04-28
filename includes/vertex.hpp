@@ -1,13 +1,15 @@
 #ifndef VERTEX_HPP
 #define VERTEX_HPP
 
-#define MaxQuadCount    256
+#define MaxQuadCount    5
 #define MaxVertexCount  MaxQuadCount * 4
 #define MaxIndicesCount MaxQuadCount * 6
 
+#include "vec.hpp"
+
 struct Vertex {
-	float pos_x, pos_y, pos_z;
-	float col_r, col_g, col_b, col_a;
+	vec<3> pos;
+	vec<4> col;
 };
 
 #endif //!VERTEX_HPP

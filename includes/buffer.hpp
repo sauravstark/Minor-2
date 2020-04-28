@@ -1,9 +1,8 @@
 #ifndef BUFFER_HPP
 #define BUFFER_HPP
 
-#include "glessential.hpp"
-#include "vertexbuffer.hpp"
-#include "indexbuffer.hpp"
+#include "bufferindex.hpp"
+#include "buffervertex.hpp"
 
 class Buffer {
 private:

@@ -1,5 +1,5 @@
-#ifndef VERTEX_BUFFER_HPP
-#define VERTEX_BUFFER_HPP
+#ifndef BUFFER_VERTEX_HPP
+#define BUFFER_VERTEX_HPP
 
 #include "glessential.hpp"
 #include "vertex.hpp"
@@ -31,4 +31,4 @@ void VertexBuffer::refresh(Vertex* ptr) {
     GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, MaxVertexCount * sizeof(Vertex), ptr));
 }
 
-#endif //!VERTEX_BUFFER_HPP
+#endif //!BUFFER_VERTEX_HPP
