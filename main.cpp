@@ -13,9 +13,10 @@ int main()
 
     loop = [&]
     {
-		game.Update();
-		game.LateUpdate();
-		game.Draw();
+      game.updateTimeStep();
+      game.Update();
+      game.LateUpdate();
+      game.Draw();
     };
 
     emscripten_set_main_loop(main_loop, 0, true);
