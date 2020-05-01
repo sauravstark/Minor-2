@@ -5,6 +5,7 @@
 #include "vertex.hpp"
 #include "object.hpp"
 #include "clock.hpp"
+#include "input.hpp"
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
@@ -13,6 +14,7 @@ class Game {
 private:
 	Window window;
 	Clock clock;
+	Input input;
 	float time_step;
 	std::vector<Vertex> vertices;
 	Object player;
@@ -24,6 +26,7 @@ public:
 	void LateUpdate();
 	void Draw();
 	void updateTimeStep();
+	void captureInput();
 };
 
 Game::Game() : time_step(0.0f){
@@ -59,8 +62,27 @@ Game::Game() : time_step(0.0f){
 
 void Game::Update() {
 	vec<2> pos = player.getPosition();
-	const float speed = 200.0f / 1920;
-	player.setPosition(vec<2>(pos[0] + speed * time_step, pos[1]));
+	const float speed = 2000.0f / 1920;
+
+	float x_mov = 0.0f, y_mov = 0.0f;
+	if(input.isKeyPressed(Input::Key::Right) && !input.isKeyPressed(Input::Key::Left))
+        x_mov = speed * time_step;
+
+    if(!input.isKeyPressed(Input::Key::Right) && input.isKeyPressed(Input::Key::Left))
+        x_mov = -speed * time_step;
+
+	if(input.isKeyPressed(Input::Key::Up) && !input.isKeyPressed(Input::Key::Down))
+        y_mov = speed * time_step;
+
+    if(!input.isKeyPressed(Input::Key::Up) && input.isKeyPressed(Input::Key::Down))
+        y_mov = -speed * time_step;
+
+	if ((x_mov != 0) && (y_mov != 0)) {
+		x_mov /= 1.414f;
+		y_mov /= 1.414f;
+	}
+
+	player.setPosition(vec<2>(pos[0] + x_mov, pos[1] + y_mov));
 	std::tuple<Vertex, Vertex, Vertex, Vertex> v = player.getVertices();
 	unsigned index = vertices.size();
 	vertices[index - 4] = std::get<0>(v);
@@ -79,6 +101,10 @@ void Game::Draw() {
 
 void Game::updateTimeStep() {
 	time_step = clock.getTimeStep();
+}
+
+void Game::captureInput() {
+	input.update();
 }
 
 #endif // !GAME_HPP

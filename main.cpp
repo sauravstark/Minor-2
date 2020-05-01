@@ -13,6 +13,7 @@ int main()
 
     loop = [&]
     {
+      game.captureInput();
       game.updateTimeStep();
       game.Update();
       game.LateUpdate();
