@@ -10,13 +10,10 @@
 
 class Shader {
 private:
-	// the program ID
 	unsigned int ID;
 
 public:
-	// constructor reads and builds the shader
 	Shader(const GLchar* vertexPath, const GLchar* fragmentPath) {
-		// 1. retrieve the vertex/fragment source code from filePath
 		std::string vertexCode;
 		std::string fragmentCode;
 		std::ifstream vShaderFile;
@@ -46,7 +43,6 @@ public:
 		const char* vShaderCode = vertexCode.c_str();
 		const char* fShaderCode = fragmentCode.c_str();
 
-		// 2. compile shaders
 		unsigned int vertex, fragment;
 		int success;
 		char infoLog[512];
@@ -91,15 +87,12 @@ public:
 		GLCall(glDeleteShader(vertex));
 		GLCall(glDeleteShader(fragment));
 	}
-	// use/activate the shader
 	void use() {
 		GLCall(glUseProgram(ID));
 	}
-	// returns ID of the shader
 	unsigned int getID() {
 		return ID;
 	}
-	// utility uniform functions
 	void setMat3(const std::string& name, float* value) const {
 		GLCall(glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, value));
 	}

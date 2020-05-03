@@ -23,7 +23,7 @@ Window::Window() {
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    std::cout << glGetString(GL_VERSION) << std::endl;
+    GLCall(std::cout << glGetString(GL_VERSION) << std::endl);
 
     renderer = new Renderer();
 }

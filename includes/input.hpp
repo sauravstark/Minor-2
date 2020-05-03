@@ -1,5 +1,5 @@
-#ifndef Input_hpp
-#define Input_hpp
+#ifndef INPUT_HPP
+#define INPUT_HPP
 
 #include <SDL.h>
 #include "bitmask.hpp"
@@ -81,4 +81,4 @@ void Input::update() {
     }
 }
 
-#endif /* Input_hpp */
+#endif // !INPUT_HPP

@@ -30,12 +30,15 @@ public:
 };
 
 Game::Game() : time_step(0.0f){
-	float l = 2.0f / 16;
-	float b = 2.0f / 9;
+	const unsigned int scale = 10;
+	const unsigned int row_count = 9 * scale;
+	const unsigned int col_count = 16 * scale;
+	const float l = 2.0f / col_count;
+	const float b = 2.0f / row_count;
 	Object obj;
 	obj.setScale(vec<2>(l, b));
-	for (int i = 0; i < 16; ++i) {
-		for (int j = 0; j < 9; ++j) {
+	for (int i = 0; i < col_count; ++i) {
+		for (int j = 0; j < row_count; ++j) {
 			float x = i * l + l / 2 - 1.0f;
 			float y = j * b + b / 2 - 1.0f;
 
@@ -95,7 +98,7 @@ void Game::LateUpdate() {
 	
 }
 
-void Game::Draw() {	
+void Game::Draw() {
 	window.draw(vertices);
 }
 
