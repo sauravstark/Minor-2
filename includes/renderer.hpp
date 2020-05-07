@@ -7,6 +7,24 @@
 #include "stb_image.h"
 #include <vector>
 
+void texture(Shader& shader, unsigned int slot, char const *filepath) {
+	shader.setInt("texture0" + std::to_string(slot), slot);
+	unsigned int tex_id;
+	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+	GLCall(glGenTextures(1, &tex_id));
+	GLCall(glBindTexture(GL_TEXTURE_2D, tex_id));
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* data = stbi_load(filepath, &width, &height, &nrChannels, 4);
+	if (data) {
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
+		GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+	} else {
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+}
+
 class Renderer {
 private:
 	Shader shader;
@@ -19,65 +37,19 @@ public:
 
 Renderer::Renderer() :
 	shader(Shader("./assets/shaders/vertex.glsl", "./assets/shaders/fragment.glsl")) {
-	
-	//shader.setInt("texture1", 1);
+
 	shader.use();
-	for (unsigned int i = 0; i < 16; ++i) {
-		std::string slot = std::to_string(i);
-		std::string utex = std::string("texture") + std::string(2 - slot.length(), '0') + slot;
-		shader.setInt(utex, i);
-	}
 
-	
-
-	unsigned int texture1;
-	GLCall(glGenTextures(1, &texture1));
-    GLCall(glBindTexture(GL_TEXTURE_2D, texture1));
-	int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
-	unsigned char *data = stbi_load("assets/textures/facebook.png", &width, &height, &nrChannels, 4);
-    if (data)
-    {
-        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
-        GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-	GLCall(glActiveTexture(GL_TEXTURE1));
-	GLCall(glGenTextures(1, &texture1));
-    GLCall(glBindTexture(GL_TEXTURE_2D, texture1));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	data = stbi_load("assets/textures/instagram.png", &width, &height, &nrChannels, 4);
-    if (data)
-    {
-        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
-        GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-	GLCall(glActiveTexture(GL_TEXTURE2));
-	GLCall(glGenTextures(1, &texture1));
-    GLCall(glBindTexture(GL_TEXTURE_2D, texture1));
-	data = stbi_load("assets/textures/dribble.png", &width, &height, &nrChannels, 4);
-    if (data)
-    {
-        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
-        GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
+	texture(shader, 0, "assets/textures/behance.png");
+	texture(shader, 1, "assets/textures/dribble.png");
+	texture(shader, 2, "assets/textures/facebook.png");
+	texture(shader, 3, "assets/textures/instagram.png");
+	texture(shader, 4, "assets/textures/pinterest.png");
+	texture(shader, 5, "assets/textures/snapchat.png");
+	texture(shader, 6, "assets/textures/soundcloud.png");
+	texture(shader, 7, "assets/textures/steam.png");
+	texture(shader, 8, "assets/textures/stumbleupon.png");
+	texture(shader, 9, "assets/textures/skype.png");	
 	
 	GLCall(glClearColor(0.0f, 0.0f, 1.0f, 1.0f));
 }

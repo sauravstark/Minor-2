@@ -30,7 +30,7 @@ public:
 };
 
 Game::Game() : time_step(0.0f){
-	const unsigned int count = 1;
+	const unsigned int count = 2;
 	const unsigned int row_count =  9 * count;
 	const unsigned int col_count = 16 * count;
 	const float l = 2.0f / col_count;
@@ -43,10 +43,7 @@ Game::Game() : time_step(0.0f){
 			float y = j * b + b / 2 - 1.0f;
 
 			obj.setPosition(vec<2>(x, y));
-			if ((i + j) % 2 == 0)
-				obj.setTexture(0);
-			else
-				obj.setTexture(1);
+			obj.setTexture((i % 3) * 3 + j % 3);
 
 			std::tuple<Vertex, Vertex, Vertex, Vertex> v = obj.getVertices();
 			vertices.push_back(std::get<0>(v));
@@ -55,7 +52,7 @@ Game::Game() : time_step(0.0f){
 			vertices.push_back(std::get<3>(v));
 		}
 	}
-	player.setScale(vec<2>(l, b)).setTexture(2).setPosition(vec<2>(0.0f, 0.0f));
+	player.setScale(vec<2>(l, b)).setTexture(9).setPosition(vec<2>(0.0f, 0.0f));
 	std::tuple<Vertex, Vertex, Vertex, Vertex> v = player.getVertices();
 	vertices.push_back(std::get<0>(v));
 	vertices.push_back(std::get<1>(v));
