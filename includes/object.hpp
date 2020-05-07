@@ -14,6 +14,7 @@ private:
 	vec<1> rotation;
 	vec<2> scale;
 	vec<4> color;
+	int texture;
 public:
 	Object();
     unsigned long long int getID() const;
@@ -21,18 +22,21 @@ public:
 	Object& setRotation(vec<1> rot);
 	Object& setScale(vec<2> sca);
 	Object& setColor(vec<4> col);
+	Object& setTexture(int tex);
 	vec<2> getPosition() const;
 	vec<1> getRotation() const;
 	vec<2> getScale() const;
 	vec<4> getColor() const;
+	int getTexture() const;
 	std::tuple<Vertex, Vertex, Vertex, Vertex> getVertices() const;
 };
 
 Object::Object() :
 	position(vec<2>(0.0f, 0.0f)),
-	color(vec<4>(1.0f, 0.0f, 0.0f, 1.0f)),
+	color(vec<4>(1.0f, 1.0f, 1.0f, 1.0f)),
 	rotation(vec<1>(0.0f)),
-	scale(vec<2>(1.0f, 1.0f)) { }
+	scale(vec<2>(1.0f, 1.0f)),
+	texture(-1) { }
 
 unsigned long long int Object::getID() const {
     return id;
@@ -58,6 +62,11 @@ Object& Object::setColor(vec<4> col) {
 	return *this;
 }
 
+Object& Object::setTexture(int tex) {
+	texture = tex;
+	return *this;
+}
+
 vec<2> Object::getPosition() const {
 	return position;
 }
@@ -74,6 +83,10 @@ vec<4> Object::getColor() const {
 	return color;
 }
 
+int Object::getTexture() const {
+	return texture;
+}
+
 std::tuple<Vertex, Vertex, Vertex, Vertex> Object::getVertices() const {
 	mat<3> translation, rotation, scale;
 
@@ -81,6 +94,7 @@ std::tuple<Vertex, Vertex, Vertex, Vertex> Object::getVertices() const {
 	vec<1> rot = this->rotation;
 	vec<2> sca = this->scale;
 	vec<4> col = this->color;
+	float  tex = float(this->texture);
 
 	translation[0][2] = pos[0];
 	translation[1][2] = pos[1];
@@ -94,15 +108,13 @@ std::tuple<Vertex, Vertex, Vertex, Vertex> Object::getVertices() const {
 	scale[1][1] = sca[1];
 
 	mat<3> transform = translation * rotation * scale;
-
-	Vertex ret[4];
 	
-	ret[0] = { transform * vec<3>(-0.5, -0.5, 1.0), col };
-	ret[1] = { transform * vec<3>( 0.5, -0.5, 1.0), col };
-	ret[2] = { transform * vec<3>(-0.5,  0.5, 1.0), col };
-	ret[3] = { transform * vec<3>( 0.5,  0.5, 1.0), col };
+	Vertex ret0 = { transform * vec<3>(-0.5f, -0.5f, 1.0f), col, vec<3>(0.0f, 0.0f, tex) };
+	Vertex ret1 = { transform * vec<3>( 0.5f, -0.5f, 1.0f), col, vec<3>(1.0f, 0.0f, tex) };
+	Vertex ret2 = { transform * vec<3>(-0.5f,  0.5f, 1.0f), col, vec<3>(0.0f, 1.0f, tex) };
+	Vertex ret3 = { transform * vec<3>( 0.5f,  0.5f, 1.0f), col, vec<3>(1.0f, 1.0f, tex) };
 
-	return std::make_tuple(ret[0], ret[1], ret[2], ret[3]);
+	return std::make_tuple(ret0, ret1, ret2, ret3);
 }
 
 #endif // !OBJECT_HPP

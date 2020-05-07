@@ -24,6 +24,8 @@ Window::Window() {
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     GLCall(std::cout << glGetString(GL_VERSION) << std::endl);
+    GLCall(glEnable(GL_BLEND));
+    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     renderer = new Renderer();
 }

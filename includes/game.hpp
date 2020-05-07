@@ -30,9 +30,9 @@ public:
 };
 
 Game::Game() : time_step(0.0f){
-	const unsigned int scale = 10;
-	const unsigned int row_count = 9 * scale;
-	const unsigned int col_count = 16 * scale;
+	const unsigned int count = 1;
+	const unsigned int row_count =  9 * count;
+	const unsigned int col_count = 16 * count;
 	const float l = 2.0f / col_count;
 	const float b = 2.0f / row_count;
 	Object obj;
@@ -44,9 +44,9 @@ Game::Game() : time_step(0.0f){
 
 			obj.setPosition(vec<2>(x, y));
 			if ((i + j) % 2 == 0)
-				obj.setColor(vec<4>(1.0f, 0.0f, 0.0f, 1.0f));
+				obj.setTexture(0);
 			else
-				obj.setColor(vec<4>(0.0f, 0.0f, 1.0f, 1.0f));
+				obj.setTexture(1);
 
 			std::tuple<Vertex, Vertex, Vertex, Vertex> v = obj.getVertices();
 			vertices.push_back(std::get<0>(v));
@@ -55,7 +55,7 @@ Game::Game() : time_step(0.0f){
 			vertices.push_back(std::get<3>(v));
 		}
 	}
-	player.setScale(vec<2>(l, b)).setColor(vec<4>(0.0f, 0.0f, 0.0f, 1.0f)).setPosition(vec<2>(0.0f, 0.0f));
+	player.setScale(vec<2>(l, b)).setTexture(2).setPosition(vec<2>(0.0f, 0.0f));
 	std::tuple<Vertex, Vertex, Vertex, Vertex> v = player.getVertices();
 	vertices.push_back(std::get<0>(v));
 	vertices.push_back(std::get<1>(v));

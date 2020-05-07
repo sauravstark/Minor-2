@@ -8,7 +8,7 @@
 #include<iostream>
 #include<string>
 
-stbi_set_flip_vertically_on_load(true);
+//stbi_set_flip_vertically_on_load(true);
 
 class Texture
 {
@@ -21,19 +21,21 @@ private:
 
 public:
 
-	Texture(const char* fileName, GLenum type)
+	Texture(const char* fileName, const GLint slot)
 	{
-		this->type = type;
+		this->type = GL_TEXTURE_2D;
 
-		unsigned char *image = stbi_load(fileName, &this->width, &this->height, &this->nrChannels, 0);
-
+		unsigned char *image = stbi_load(fileName, &this->width, &this->height, &this->channels, 4);
+		
+		GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 		GLCall(glGenTextures(1, &this->id));
-		GLCall(glBindTexture(type, this->id));
+		
+		GLCall(glBindTexture(this->type, this->id));
 
-		GLCall(glTexParameteri(type, GL_TEXTURE_WRAP_S, GL_REPEAT));
-		GLCall(glTexParameteri(type, GL_TEXTURE_WRAP_T, GL_REPEAT));
-		GLCall(glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR));
-		GLCall(glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 
 		if (image)
 		{
@@ -44,9 +46,8 @@ public:
 		{
 			std::cout << "ERROR::TEXTURE::TEXTURE_LOADING_FAILED: " << fileName <<"\n";
 		}
-
-		GLCall(glActiveTexture(0));
-		GLCall(glBindTexture(type, 0));
+		
+		GLCall(glBindTexture(this->type, 0));
         stbi_image_free(image);
 	}
 
@@ -76,7 +77,7 @@ public:
 			GLCall(glDeleteTextures(1, &this->id));
 		}
 
-		unsigned char *image = stbi_load(fileName, &this->width, &this->height, &this->nrChannels, 0);
+		unsigned char *image = stbi_load(fileName, &this->width, &this->height, &this->channels, 4);
 
 		GLCall(glGenTextures(1, &this->id));
 		GLCall(glBindTexture(this->type, this->id));

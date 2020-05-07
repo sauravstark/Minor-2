@@ -20,6 +20,8 @@ VertexBuffer::VertexBuffer() {
     GLCall(glEnableVertexAttribArray(0));
 	GLCall(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float))));
     GLCall(glEnableVertexAttribArray(1));
+    GLCall(glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(7 * sizeof(float))));
+    GLCall(glEnableVertexAttribArray(2));
 }
 
 void VertexBuffer::refresh(Vertex* ptr) {
