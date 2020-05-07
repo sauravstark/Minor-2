@@ -30,20 +30,20 @@ public:
 };
 
 Game::Game() : time_step(0.0f){
-	float l = 2.0f / 16;
-	float b = 2.0f / 9;
+	const unsigned int count = 2;
+	const unsigned int row_count =  9 * count;
+	const unsigned int col_count = 16 * count;
+	const float l = 2.0f / col_count;
+	const float b = 2.0f / row_count;
 	Object obj;
 	obj.setScale(vec<2>(l, b));
-	for (int i = 0; i < 16; ++i) {
-		for (int j = 0; j < 9; ++j) {
+	for (int i = 0; i < col_count; ++i) {
+		for (int j = 0; j < row_count; ++j) {
 			float x = i * l + l / 2 - 1.0f;
 			float y = j * b + b / 2 - 1.0f;
 
 			obj.setPosition(vec<2>(x, y));
-			if ((i + j) % 2 == 0)
-				obj.setColor(vec<4>(1.0f, 0.0f, 0.0f, 1.0f));
-			else
-				obj.setColor(vec<4>(0.0f, 0.0f, 1.0f, 1.0f));
+			obj.setTexture((i % 3) * 3 + j % 3);
 
 			std::tuple<Vertex, Vertex, Vertex, Vertex> v = obj.getVertices();
 			vertices.push_back(std::get<0>(v));
@@ -52,7 +52,7 @@ Game::Game() : time_step(0.0f){
 			vertices.push_back(std::get<3>(v));
 		}
 	}
-	player.setScale(vec<2>(l, b)).setColor(vec<4>(0.0f, 0.0f, 0.0f, 1.0f)).setPosition(vec<2>(0.0f, 0.0f));
+	player.setScale(vec<2>(l, b)).setTexture(9).setPosition(vec<2>(0.0f, 0.0f));
 	std::tuple<Vertex, Vertex, Vertex, Vertex> v = player.getVertices();
 	vertices.push_back(std::get<0>(v));
 	vertices.push_back(std::get<1>(v));
@@ -95,7 +95,7 @@ void Game::LateUpdate() {
 	
 }
 
-void Game::Draw() {	
+void Game::Draw() {
 	window.draw(vertices);
 }
 

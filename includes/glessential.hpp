@@ -2,7 +2,7 @@
 #define GLESSENTIAL_HPP
 
 #define GL_GLEXT_PROTOTYPES 1
-#include <GLFW/glfw3.h>
+#include <GL/glfw.h>
 
 #include <iostream>
 

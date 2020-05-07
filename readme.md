@@ -23,7 +23,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 4.  Build index.js and index.wasm:
     
-    `emcc main.cpp -std=c++11 -s WASM=1 -s USE_SDL=2 -O3 -o index.js`
+    `emcc main.cpp -std=c++11 -s WASM=1 -s USE_SDL=2 -O3 -o index.js --embed-file shaders`
     
 5.  Start a webserver:
 
