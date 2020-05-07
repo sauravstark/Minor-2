@@ -49,7 +49,7 @@ Renderer::Renderer() :
 	texture(shader, 6, "assets/textures/soundcloud.png");
 	texture(shader, 7, "assets/textures/steam.png");
 	texture(shader, 8, "assets/textures/stumbleupon.png");
-	texture(shader, 9, "assets/textures/skype.png");	
+	texture(shader, 9, "assets/textures/skype.png");
 	
 	GLCall(glClearColor(0.0f, 0.0f, 1.0f, 1.0f));
 }
