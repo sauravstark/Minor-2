@@ -33,7 +33,7 @@ void SceneSplashScreen::OnCreate() {
 	const unsigned int col_count = 16 * count;
 	const float l = 2.0f / col_count;
 	const float b = 2.0f / row_count;
-	player.setScale(vec<2>(l, b)).setTexture(9).setPosition(vec<2>(0.0f, 0.0f));
+	player.setScale(vec<2>(l * 4, b * 4)).setTexture(0, vec<2>(2.0f / 8, 4.0f / 8), vec<2>(4.0f / 8, 6.0f / 8)).setPosition(vec<2>(0.0f, 0.0f));
 	std::tuple<Vertex, Vertex, Vertex, Vertex> v = player.getVertices();
 	vertices.push_back(std::get<0>(v));
 	vertices.push_back(std::get<1>(v));

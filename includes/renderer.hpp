@@ -8,11 +8,17 @@
 #include <vector>
 
 void texture(Shader& shader, unsigned int slot, char const *filepath) {
-	shader.setInt("texture0" + std::to_string(slot), slot);
+	std::string slot_str = std::to_string(slot);
+	std::string texture_name = "texture" + std::string(2 - slot_str.length(), '0') + slot_str;
+	shader.setInt(texture_name, slot);
 	unsigned int tex_id;
 	GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 	GLCall(glGenTextures(1, &tex_id));
 	GLCall(glBindTexture(GL_TEXTURE_2D, tex_id));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 	int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load(filepath, &width, &height, &nrChannels, 4);
@@ -40,16 +46,9 @@ Renderer::Renderer() :
 
 	shader.use();
 
-	texture(shader, 0, "assets/textures/behance.png");
-	texture(shader, 1, "assets/textures/dribble.png");
-	texture(shader, 2, "assets/textures/facebook.png");
-	texture(shader, 3, "assets/textures/instagram.png");
-	texture(shader, 4, "assets/textures/pinterest.png");
-	texture(shader, 5, "assets/textures/snapchat.png");
-	texture(shader, 6, "assets/textures/soundcloud.png");
-	texture(shader, 7, "assets/textures/steam.png");
-	texture(shader, 8, "assets/textures/stumbleupon.png");
-	texture(shader, 9, "assets/textures/skype.png");
+	texture(shader, 0, "assets/textures/players.png");
+	texture(shader, 1, "assets/textures/bullets.png");
+	texture(shader, 2, "assets/textures/background.png");
 	
 	GLCall(glClearColor(0.0f, 0.0f, 1.0f, 1.0f));
 }

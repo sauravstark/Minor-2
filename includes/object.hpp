@@ -15,6 +15,8 @@ private:
 	vec<2> scale;
 	vec<4> color;
 	int texture;
+	vec<2> tex_str;
+	vec<2> tex_end;
 public:
 	Object();
     unsigned long long int getID() const;
@@ -23,6 +25,7 @@ public:
 	Object& setScale(vec<2> sca);
 	Object& setColor(vec<4> col);
 	Object& setTexture(int tex);
+	Object& setTexture(int tex, vec<2> tex_str, vec<2> tex_end);
 	vec<2> getPosition() const;
 	vec<1> getRotation() const;
 	vec<2> getScale() const;
@@ -36,7 +39,9 @@ Object::Object() :
 	color(vec<4>(1.0f, 1.0f, 1.0f, 1.0f)),
 	rotation(vec<1>(0.0f)),
 	scale(vec<2>(1.0f, 1.0f)),
-	texture(-1) { }
+	texture(-1),
+	tex_str(vec<2>(0.0f, 0.0f)),
+	tex_end(vec<2>(1.0f, 1.0f)) { }
 
 unsigned long long int Object::getID() const {
     return id;
@@ -64,6 +69,13 @@ Object& Object::setColor(vec<4> col) {
 
 Object& Object::setTexture(int tex) {
 	texture = tex;
+	return *this;
+}
+
+Object& Object::setTexture(int tex, vec<2> tex_str, vec<2> tex_end) {
+	texture = tex;
+	this->tex_str = tex_str;
+	this->tex_end = tex_end;
 	return *this;
 }
 
@@ -107,12 +119,14 @@ std::tuple<Vertex, Vertex, Vertex, Vertex> Object::getVertices() const {
 	scale[0][0] = sca[0];
 	scale[1][1] = sca[1];
 
-	mat<3> transform = translation * rotation * scale;
+	mat<3> transform = translation * scale * rotation;
+
+	vec<2> str = tex_str, end = tex_end;
 	
-	Vertex ret0 = { transform * vec<3>(-0.5f, -0.5f, 1.0f), col, vec<3>(0.0f, 0.0f, tex) };
-	Vertex ret1 = { transform * vec<3>( 0.5f, -0.5f, 1.0f), col, vec<3>(1.0f, 0.0f, tex) };
-	Vertex ret2 = { transform * vec<3>(-0.5f,  0.5f, 1.0f), col, vec<3>(0.0f, 1.0f, tex) };
-	Vertex ret3 = { transform * vec<3>( 0.5f,  0.5f, 1.0f), col, vec<3>(1.0f, 1.0f, tex) };
+	Vertex ret0 = { transform * vec<3>(-0.5f, -0.5f, 1.0f), col, vec<3>(str[0], str[1], tex) };
+	Vertex ret1 = { transform * vec<3>( 0.5f, -0.5f, 1.0f), col, vec<3>(end[0], str[1], tex) };
+	Vertex ret2 = { transform * vec<3>(-0.5f,  0.5f, 1.0f), col, vec<3>(str[0], end[1], tex) };
+	Vertex ret3 = { transform * vec<3>( 0.5f,  0.5f, 1.0f), col, vec<3>(end[0], end[1], tex) };
 
 	return std::make_tuple(ret0, ret1, ret2, ret3);
 }
