@@ -3,9 +3,9 @@
 
 #include <tuple>
 #include <cmath>
-#include "vec.hpp"
-#include "mat.hpp"
-#include "vertex.hpp"
+#include "./Vec.hpp"
+#include "./Mat.hpp"
+#include "./Vertex.hpp"
 
 class Object {
 private:

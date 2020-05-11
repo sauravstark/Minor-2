@@ -1,7 +1,7 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
-#include "glessential.hpp"
+#include "./OpenGL.hpp"
 
 #include <string>
 #include <fstream>

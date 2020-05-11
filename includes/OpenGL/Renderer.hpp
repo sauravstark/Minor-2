@@ -1,10 +1,10 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
-#include "shader.hpp"
-#include "buffer.hpp"
+#include "./Shader.hpp"
+#include "./Buffer.hpp"
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "../External Libraries/stb_image.h"
 #include <vector>
 
 void texture(Shader& shader, unsigned int slot, char const *filepath) {
@@ -46,9 +46,8 @@ Renderer::Renderer() :
 
 	shader.use();
 
-	texture(shader, 0, "assets/textures/players.png");
-	texture(shader, 1, "assets/textures/bullets.png");
-	texture(shader, 2, "assets/textures/background.png");
+	texture(shader, 0, "assets/textures/characters.png");
+	texture(shader, 1, "assets/textures/tiles.png");
 	
 	GLCall(glClearColor(0.0f, 0.0f, 1.0f, 1.0f));
 }

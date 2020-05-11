@@ -2,8 +2,8 @@
 #define TEXTURE_HPP
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#include "glessential.hpp"
+#include "..//External Libraries/stb_image.h"
+#include "./OpenGL.hpp"
 
 #include<iostream>
 #include<string>

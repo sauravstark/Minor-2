@@ -1,7 +1,7 @@
 #ifndef WINDOW_HPP
 #define WINDOW_HPP
 
-#include "renderer.hpp"
+#include "..//OpenGL/Renderer.hpp"
 #include <SDL.h>
 #include <vector>
 

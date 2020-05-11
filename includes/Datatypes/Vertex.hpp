@@ -5,7 +5,7 @@
 #define MaxVertexCount  MaxQuadCount * 4
 #define MaxIndicesCount MaxQuadCount * 6
 
-#include "vec.hpp"
+#include "./Vec.hpp"
 
 struct Vertex {
 	vec<3> pos;

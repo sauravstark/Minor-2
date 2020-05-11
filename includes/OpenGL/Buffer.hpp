@@ -1,8 +1,8 @@
 #ifndef BUFFER_HPP
 #define BUFFER_HPP
 
-#include "bufferindex.hpp"
-#include "buffervertex.hpp"
+#include "./BufferIndex.hpp"
+#include "./BufferVertex.hpp"
 
 class Buffer {
 private:

@@ -1,7 +1,7 @@
 #ifndef BUFFER_INDEX_HPP
 #define BUFFER_INDEX_HPP
 
-#include "vertex.hpp"
+#include "../Datatypes/Vertex.hpp"
 
 class IndexBuffer {
 public:

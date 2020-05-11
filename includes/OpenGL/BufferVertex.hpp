@@ -1,8 +1,8 @@
 #ifndef BUFFER_VERTEX_HPP
 #define BUFFER_VERTEX_HPP
 
-#include "glessential.hpp"
-#include "vertex.hpp"
+#include "./OpenGL.hpp"
+#include "../Datatypes/Vertex.hpp"
 
 class VertexBuffer {
 public:

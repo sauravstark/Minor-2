@@ -2,7 +2,7 @@
 #define MAT_HPP
 
 #include <cassert>
-#include "vec.hpp"
+#include "./Vec.hpp"
 
 template<unsigned int dim>
 class mat {
