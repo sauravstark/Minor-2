@@ -3,7 +3,12 @@
 
 #include "../../GameEngine/Scene.hpp"
 #include "../../GameEngine/Input.hpp"
+#include "..//..//GameEngine/GameObject.hpp"
+#include "..//..//GameEngine/PredefinedComponents/KeyboardMovement.hpp"
+#include "..//..//GameEngine/PredefinedComponents/Texture.hpp"
+
 #include <cstdlib>
+
 #define TAU 6.2832
 struct Tex { vec<2> x; vec<2> y; };
 
@@ -14,15 +19,23 @@ public:
 	void onDestroy() override;
 	void captureInput() override;
 	void update(float time_step) override;
+	void lateUpdate(float time_step) override;
 private:
-	Object player;
+	std::shared_ptr<GameObject> player;
 	std::vector<Object> tiles;
 	std::vector<Object> enemies;
-	Input input;
+	Input* input;
 	float current_seconds;
 };
 
 void SceneGame::onCreate() {
+	input = new Input();
+
+	player = std::make_shared<GameObject>();
+	auto sprite = player->addComponent<Texture>();
+	sprite->set(0);
+	sprite->setSprite({ 7.0f / 16.0f, 10.0f / 16.0f, 8.0f / 16.0f, 11.0f / 16.0f });
+
 	current_seconds = 0.0f;
 	const unsigned int count = 2;
 	const unsigned int row_count = 9 * count;
@@ -220,6 +233,11 @@ void SceneGame::onCreate() {
 		vertices.push_back(std::get<2>(v2));
 		vertices.push_back(std::get<3>(v2));
 	}
+
+	vertices.push_back(Vertex());
+	vertices.push_back(Vertex());
+	vertices.push_back(Vertex());
+	vertices.push_back(Vertex());
 }
 
 void SceneGame::onDestroy() {
@@ -227,7 +245,7 @@ void SceneGame::onDestroy() {
 }
 
 void SceneGame::captureInput() {
-	//input.updateInput();
+	input->updateInput();
 }
 
 void SceneGame::update(float time_step) {
@@ -271,8 +289,8 @@ void SceneGame::update(float time_step) {
 	}
 	float time_elapsed = current_seconds;
 	auto disp = [&, time_elapsed](float phase) {
-		float angle = time_elapsed + phase * TAU / 6;
-		return (sin(angle) + sin(2 * angle) + sin(3 * angle)) / 2.5f;
+		float angle = time_elapsed * TAU / 12 + phase * TAU / 6;
+		return (sin(angle) + sin(3 * angle) + sin(5 * angle)) / 2.2308f;
 	};
 	enemies[ 0].setTexture(2, ene4[stage].x, ene4[stage].y).setPosition({ lb_x + l * (2.5f + 1 * disp(0)), lb_y + b * 2 });
 	enemies[ 1].setTexture(2, ene1[stage].x, ene1[stage].y).setPosition({ lb_x + l * 7, lb_y + b * (4.5f - 2 * disp(1)) });
@@ -295,6 +313,62 @@ void SceneGame::update(float time_step) {
 		vertices[index * 4 + 3] = std::get<3>(v2);
 		index++;
 	}
+
+	float x_move = 0.0f, y_move = 0.0f;
+	float move_speed = 0.1f;
+
+	if (input->isKeyPressed(Input::Key::LEFT) && !input->isKeyPressed(Input::Key::RIGHT))
+		x_move = -move_speed;
+	else if (input->isKeyPressed(Input::Key::RIGHT) && !input->isKeyPressed(Input::Key::LEFT))
+		x_move = move_speed;
+
+	if (input->isKeyPressed(Input::Key::DOWN) && !input->isKeyPressed(Input::Key::UP))
+		y_move = -move_speed;
+	else if (input->isKeyPressed(Input::Key::UP) && !input->isKeyPressed(Input::Key::DOWN))
+		y_move = move_speed;
+
+	vec<2> frame_move;
+
+	if (x_move != 0 && y_move != 0)
+		frame_move = { x_move * time_step / 1.414f, y_move * time_step / 1.414f };
+	else
+		frame_move = { x_move * time_step, y_move * time_step };
+
+	player->transform->move(frame_move);
+}
+
+inline void SceneGame::lateUpdate(float time_step) {
+	const unsigned int count = 2;
+	const unsigned int row_count = 9 * count;
+	const unsigned int col_count = 16 * count;
+	const float l = 2.0f / col_count;
+	const float b = 2.0f / row_count;
+
+	vec<2> pos = player->transform->getPosition();
+	auto texture = player->getComponent<Texture>();
+	vec<4> col = texture->getColor();
+	vec<4> sprite = texture->getSprite();
+	float texID = texture->getTextureID();
+
+	std::cout << pos[0] << pos[1];
+
+	float pos_x = pos[0], pos_y = pos[1];
+	vec<3> pos1 = { pos_x - l / 2, pos_y - b / 2, 1.0f };
+	vec<3> pos2 = { pos_x + l / 2, pos_y - b / 2, 1.0f };
+	vec<3> pos3 = { pos_x - l / 2, pos_y + b / 2, 1.0f };
+	vec<3> pos4 = { pos_x + l / 2, pos_y + b / 2, 1.0f };
+
+	vec<3> spr1 = { sprite[0], sprite[1], texID };
+	vec<3> spr2 = { sprite[2], sprite[1], texID };
+	vec<3> spr3 = { sprite[0], sprite[3], texID };
+	vec<3> spr4 = { sprite[2], sprite[3], texID };
+	
+	int index = vertices.size();
+
+	vertices[index - 4] = { pos1, col, spr1 };
+	vertices[index - 3] = { pos2, col, spr2 };
+	vertices[index - 2] = { pos3, col, spr3 };
+	vertices[index - 1] = { pos4, col, spr4 };
 }
 
 #endif // !SCENE_GAME_HPP
