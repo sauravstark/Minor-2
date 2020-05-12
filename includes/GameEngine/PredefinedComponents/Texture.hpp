@@ -4,8 +4,6 @@
 #include "..//Component.hpp"
 #include "..//..//Datatypes/Vec.hpp"
 
-#define SubSprite vec<4>
-
 class Texture : public Component {
 public:
 	Texture(GameObject* owner);
@@ -14,7 +12,7 @@ public:
 	void setColor(vec<4> color);
 	void setColor(char* hex);
 	void setSprite(float str_x, float str_y, float span_x, float span_y);
-	void setSprite(SubSprite sub_sprite);
+	void setSprite(vec<4> sub_sprite);
 	int getTextureID() const;
 	const vec<4>& getColor() const;
 	const vec<4>& getSprite() const;
@@ -48,7 +46,7 @@ inline void Texture::setSprite(float str_x, float str_y, float span_x, float spa
 	tex_span = { str_x, str_y, str_x + span_x, str_y + span_y };
 }
 
-inline void Texture::setSprite(SubSprite sub_sprite) {
+inline void Texture::setSprite(vec<4> sub_sprite) {
 	tex_span = sub_sprite;
 }
 
