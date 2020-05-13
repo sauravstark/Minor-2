@@ -77,19 +77,13 @@ inline void ObjectCollection::processRemovedObjects() {
 }
 
 inline void ObjectCollection::calculateVertices(std::vector<Vertex>& vertices) const {
-	const unsigned int count = 2;
-	const unsigned int row_count = 9 * count;
-	const unsigned int col_count = 16 * count;
-	const float l = 2.0f / col_count;
-	const float b = 2.0f / row_count;
 
 	vertices.resize(objects.size() * 4);
 	int index = 0;
 	for (auto itr = objects.begin(); itr != objects.end(); ++itr) {
-		auto transform = (*itr)->getComponent<Transform>();
+		auto transform = (*itr)->getComponent<Transform>()->getTransform();
 		auto texture = (*itr)->getComponent<Texture>();
 
-		vec<2> pos = transform->getPosition();
 		vec<4> col, spr;
 		float texID = -1.0f;
 		if (texture != nullptr) {
@@ -97,11 +91,54 @@ inline void ObjectCollection::calculateVertices(std::vector<Vertex>& vertices) c
 			spr = texture->getSprite();
 			texID = texture->getTextureID();
 		}
+		float pos_x = transform[0][0], pos_y = transform[0][1], pos_z = transform[0][2];
+		float ang_x = transform[1][0], ang_y = transform[1][1], ang_z = transform[1][2];
+		float siz_x = transform[2][0], siz_y = transform[2][1], siz_z = transform[2][2];
 
-		vec<3> pos1 = { pos[0] - l / 2, pos[1] - b / 2, 0.0f };
-		vec<3> pos2 = { pos[0] + l / 2, pos[1] - b / 2, 0.0f };
-		vec<3> pos3 = { pos[0] - l / 2, pos[1] + b / 2, 0.0f };
-		vec<3> pos4 = { pos[0] + l / 2, pos[1] + b / 2, 0.0f };
+		mat<4> T = {
+			{ 1.00f, 0.00f, 0.00f, pos_x },
+			{ 0.00f, 1.00f, 0.00f, pos_y },
+			{ 0.00f, 0.00f, 1.00f, pos_z },
+			{ 0.00f, 0.00f, 0.00f, 1.00f },
+		};
+
+		mat<4> R = {
+			{
+				cos(ang_x) * cos(ang_y),
+				cos(ang_x) * sin(ang_y) * sin(ang_z) - sin(ang_x) * cos(ang_z),
+				cos(ang_x) * sin(ang_y) * cos(ang_z) + sin(ang_x) * sin(ang_z),
+				0.00f
+			},
+			{
+				sin(ang_x) * cos(ang_y),
+				sin(ang_x) * sin(ang_y) * sin(ang_z) + cos(ang_x) * cos(ang_z),
+				sin(ang_x) * sin(ang_y) * cos(ang_z) - cos(ang_x) * sin(ang_z),
+				0.00f
+			},
+			{
+				-sin(ang_y),
+				cos(ang_y) * sin(ang_z),
+				cos(ang_y) * cos(ang_z),
+				0.00f
+			},
+			{	
+				0.00f, 0.00f, 0.00f, 1.00f
+			}
+		};
+
+		mat<4> S = {
+			{ siz_x, 0.00f, 0.00f, 0.00f },
+			{ 0.00f, siz_y, 0.00f, 0.00f },
+			{ 0.00f, 0.00f, siz_z, 0.00f },
+			{ 0.00f, 0.00f, 0.00f, 1.00f },
+		};
+
+		mat<4> transform_matrix = T * R * S;
+
+		vec<4> pos1 = transform_matrix * vec<4>(-0.50f, -0.50f, 0.00f, 1.00f);
+		vec<4> pos2 = transform_matrix * vec<4>( 0.50f, -0.50f, 0.00f, 1.00f);
+		vec<4> pos3 = transform_matrix * vec<4>(-0.50f,  0.50f, 0.00f, 1.00f);
+		vec<4> pos4 = transform_matrix * vec<4>( 0.50f,  0.50f, 0.00f, 1.00f);
 
 		vec<3> tex1 = { spr[0], spr[1], texID };
 		vec<3> tex2 = { spr[2], spr[1], texID };

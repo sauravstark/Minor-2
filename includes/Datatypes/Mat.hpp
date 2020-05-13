@@ -15,9 +15,13 @@ public:
 	mat(vec<dim> v1, vec<dim> v2);
 	mat(vec<dim> v1, vec<dim> v2, vec<dim> v3);
 	mat(vec<dim> v1, vec<dim> v2, vec<dim> v3, vec<dim> v4);
+
 	vec<dim>& operator[](unsigned int index);
 	mat<dim> operator*(const mat<dim> r_val);
 	vec<dim> operator*(const vec<dim> r_val);
+	
+	vec<dim> get(unsigned int r) const;
+	float get(unsigned int r, unsigned int c) const;
 };
 
 template<unsigned int dim>
@@ -102,6 +106,19 @@ vec<dim> mat<dim>::operator*(vec<dim> arg)
 	}
 
 	return ret;
+}
+
+template<unsigned int dim>
+inline vec<dim> mat<dim>::get(unsigned int r) const {
+	assert(r < dim);
+	return vals[r];
+}
+
+template<unsigned int dim>
+inline float mat<dim>::get(unsigned int r, unsigned int c) const {
+	assert(r < dim);
+	assert(c < dim);
+	return vals[r].get(c);
 }
 
 #endif

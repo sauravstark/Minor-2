@@ -1,6 +1,8 @@
 #ifndef VEC_HPP
 #define VEC_HPP
 
+#define PI 3.14
+
 #include <cassert>
 
 template<unsigned int dim>
@@ -14,6 +16,7 @@ public:
 	vec(float x1, float x2, float x3);
 	vec(float x1, float x2, float x3, float x4);
 	float& operator[](unsigned int index);
+	float get(unsigned int index) const;
 };
 
 template<unsigned int dim>
@@ -55,6 +58,12 @@ vec<dim>::vec(float x1, float x2, float x3, float x4) {
 
 template<unsigned int dim>
 float& vec<dim>::operator[](unsigned int index) {
+	return vals[index];
+}
+
+template<unsigned int dim>
+inline float vec<dim>::get(unsigned int index) const
+{
 	return vals[index];
 }
 

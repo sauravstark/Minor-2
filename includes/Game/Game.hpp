@@ -3,7 +3,7 @@
 
 #include "../GameEngine/Window.hpp"
 #include "../Datatypes/Vertex.hpp"
-#include "../Datatypes/Object.hpp"
+//#include "../Datatypes/Object.hpp"
 #include "../GameEngine/Clock.hpp"
 //#include "input.hpp"
 #include "../GameEngine/SceneStateMachine.hpp"
@@ -35,7 +35,7 @@ public:
 
 Game::Game() : time_step(0.0f){
 	std::shared_ptr<SceneSplashScreen> splash_screen =
-		std::make_shared<SceneSplashScreen>(scene_state_machine, window);
+		std::make_shared<SceneSplashScreen>(scene_state_machine);
 	std::shared_ptr<SceneGame> game_scene =
 		std::make_shared<SceneGame>();
 

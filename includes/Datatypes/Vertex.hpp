@@ -8,7 +8,7 @@
 #include "./Vec.hpp"
 
 struct Vertex {
-	vec<3> pos;
+	vec<4> pos;
 	vec<4> col;
 	vec<3> tex;
 };
