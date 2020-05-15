@@ -20,12 +20,12 @@ public:
 	void setRepeat(Repeat dir);
 	Repeat getRepeat() const;
 	void update(float time_step);
+	void reset();
 private:
 	std::vector<Frame> frames;
 	int active_frame_index;
 	int incr;
 	float time_elapsed;
-	float total_duration;
 	Repeat repeat_function;
 
 	void nextFrame();
@@ -36,7 +36,7 @@ inline Frame::Frame(vec<4> span, float duration) :
 
 inline FrameSet::FrameSet(unsigned frame_count, Repeat repeat) :
 	frames(frame_count), time_elapsed(0.0f),
-	repeat_function(repeat), total_duration(0.0f) {
+	repeat_function(repeat) {
 
 	if (repeat_function == Repeat::FORWARD || repeat_function == Repeat::ALTERNATE) {
 		active_frame_index = 0;
@@ -65,10 +65,12 @@ inline Repeat FrameSet::getRepeat() const {
 }
 
 inline void FrameSet::update(float time_step) {
-	time_elapsed += time_step;
-	
-	if (time_elapsed > frames[active_frame_index].frame_duration)
-		nextFrame();
+	if (frames.size() > 1) {
+		time_elapsed += time_step;
+
+		if (time_elapsed > frames[active_frame_index].frame_duration)
+			nextFrame();
+	}
 }
 
 inline void FrameSet::nextFrame() {
@@ -84,6 +86,18 @@ inline void FrameSet::nextFrame() {
 	} else if ((repeat_function == Repeat::ALTERNATE || repeat_function == Repeat::ALTERNATE_REVERSE) && active_frame_index == -1) {
 		active_frame_index = 1;
 		incr = 1;
+	}
+}
+
+inline void FrameSet::reset() {
+	time_elapsed = 0.0f;
+	if (repeat_function == Repeat::FORWARD || repeat_function == Repeat::ALTERNATE) {
+		active_frame_index = 0;
+		incr = 1;
+	}
+	else {
+		active_frame_index = frames.size() - 1;
+		incr = -1;
 	}
 }
 

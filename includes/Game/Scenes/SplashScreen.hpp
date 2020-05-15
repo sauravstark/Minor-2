@@ -18,10 +18,8 @@ public:
 	void onActivate() override;
 	void setSwitchToScene(unsigned int id);
 	void update(float time_step) override;
-	void lateUpdate(float time_step) override;
 private:
 	std::shared_ptr<GameObject> player[8];
-	ObjectCollection object_collection;
 	SceneStateMachine& scene_state_machine;
 	float show_for_seconds;
 	float current_seconds;
@@ -30,7 +28,7 @@ private:
 
 SceneSplashScreen::SceneSplashScreen(SceneStateMachine& scene_state_machine)
 	: scene_state_machine(scene_state_machine), switch_to_state(0),
-	current_seconds(0.f), show_for_seconds(10.0f){ }
+	current_seconds(0.f), show_for_seconds(2.0f){ }
 
 void SceneSplashScreen::onCreate() {
 	const unsigned int count = 2;
@@ -39,23 +37,21 @@ void SceneSplashScreen::onCreate() {
 	const float l = 2.0f / col_count;
 	const float b = 2.0f / row_count;
 	for (int i = 0; i < 8; ++i) {
-		player[i] = std::make_shared<GameObject>();
+		player[i] = createObject();
 
 		auto transform = player[i]->getComponent<Transform>();
-		transform->setScale(l, b);
+		transform->setScale(50.0f, 50.0f);
 
 		auto texture = player[i]->addComponent<Texture>();
 		texture->set(0);
 
 		auto animation = player[i]->addComponent<Animation>();
 		std::shared_ptr<FrameSet> floating_animation = std::make_shared<FrameSet>(3, Repeat::ALTERNATE);
-		floating_animation->setFrameData(0, Frame(SpriteSheet::Enemy::floating_1));
-		floating_animation->setFrameData(1, Frame(SpriteSheet::Enemy::floating_2));
-		floating_animation->setFrameData(2, Frame(SpriteSheet::Enemy::floating_3));
-		animation->addAnimation("FLOAT", floating_animation);
-		animation->setAnimation("FLOAT");
-
-		object_collection.add(player[i]);
+		floating_animation->setFrameData(0, Frame(SpriteSheet::Enemy::flying_1));
+		floating_animation->setFrameData(1, Frame(SpriteSheet::Enemy::flying_2));
+		floating_animation->setFrameData(2, Frame(SpriteSheet::Enemy::flying_3));
+		animation->addAnimation("FLY", floating_animation);
+		animation->setAnimation("FLY");
 	}
 }
 
@@ -77,24 +73,15 @@ void SceneSplashScreen::update(float time_step) {
 	}
 
 	auto x_pos = [](float t) {
-		return sinf(1 * t * PI / 3 + PI / 2) * 0.25f * 9.0f / 16;
+		return sinf(1 * t * PI / 3 + PI / 2) * 200;
 	};
 	auto y_pos = [](float t) {
-		return sinf(2 * t * PI / 3) * 0.25f;
+		return sinf(2 * t * PI / 3) * 200;
 	};
 	for (int i = 0; i < 8; ++i) {
 		float phase = current_seconds + float(i) * 3.0f / 8;
 		player[i]->getComponent<Transform>()->setPos(x_pos(phase), y_pos(phase));
 	}
-
-	object_collection.processRemovedObjects();
-	object_collection.processAddedObjects();
-	object_collection.update(time_step);
-}
-
-inline void SceneSplashScreen::lateUpdate(float time_step) {
-	object_collection.lateUpdate(time_step);
-	object_collection.calculateVertices(vertices);
 }
 
 #endif // !SCENE_SPLASH_SCREEN_HPP

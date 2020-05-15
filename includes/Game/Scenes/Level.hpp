@@ -7,12 +7,12 @@
 #include "..//..//GameEngine/ObjectCollection.hpp"
 #include "..//..//GameEngine/PredefinedComponents/Texture.hpp"
 #include "..//..//GameEngine/PredefinedComponents/Animation.hpp"
+#include "..//..///GameEngine/PredefinedComponents/Collider.hpp"
+#include "..//..//Datatypes/Rect.hpp"
 #include "..//Sprites/SpriteSheet.hpp"
 
+#include <vector>
 #include <cstdlib>
-
-#define TAU 6.2832
-struct Tex { vec<2> x; vec<2> y; };
 
 class SceneGame : public Scene {
 public:
@@ -20,39 +20,99 @@ public:
 	void onDestroy() override;
 	void captureInput() override;
 	void update(float time_step) override;
-	void lateUpdate(float time_step) override;
 private:
 	Input input;
-private:
-	ObjectCollection object_collection;
-	std::shared_ptr<GameObject> player1;
+	std::shared_ptr<GameObject> player;
+	std::vector<std::shared_ptr<GameObject>> tiles;
+	std::shared_ptr<GameObject> background;
+	const float box_size = 50.0f;
+	float y_speed = 0.0f;
+	bool isGrounded = false;
+	//collider type 1: middle, type 2: left_half, type 3: right_half
+	std::shared_ptr<GameObject> placeTile(vec<2> pos, const SubSprite type, int collider_type);
 };
 
 void SceneGame::onCreate() {
-	const unsigned int count = 2;
-	const unsigned int row_count = 9 * count;
-	const unsigned int col_count = 16 * count;
-	const float l = 2.0f / col_count;
-	const float b = 2.0f / row_count;
 
-	player1 = std::make_shared<GameObject>();
+	//Background
+	{
+		
+		background = createObject();
+		
+		auto transform = background->getComponent<Transform>();
+		transform->setScale(1600.0f, 900.0f);
+		
+		auto texture = background->addComponent<Texture>();
+		texture->set(2);
+		texture->setSprite(SpriteSheet::Background::Blue);
+	}
+	//Tiles
+	{
+		tiles.push_back(placeTile({ 0.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 0.0f, 1.0f }, SpriteSheet::Tile::Brown::centre2, 0));
+		tiles.push_back(placeTile({ 0.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
+																		  
+		tiles.push_back(placeTile({ 1.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 1.0f, 1.0f }, SpriteSheet::Tile::Brown::baseless_half_left, 2));
+		tiles.push_back(placeTile({ 1.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_right, 1));
+																		  
+		tiles.push_back(placeTile({ 2.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 2.0f, 1.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
+																		  
+		tiles.push_back(placeTile({ 3.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 3.0f, 1.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
+																		  
+		tiles.push_back(placeTile({ 4.0f, 0.0f }, SpriteSheet::Tile::Brown::centre3, 0));
+		tiles.push_back(placeTile({ 4.0f, 1.0f }, SpriteSheet::Tile::Brown::baseless_half_right, 3));
+		tiles.push_back(placeTile({ 4.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_left, 1));
+																		  
+		tiles.push_back(placeTile({ 5.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 5.0f, 1.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 5.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
+																		  
+		tiles.push_back(placeTile({ 6.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 6.0f, 1.0f }, SpriteSheet::Tile::Brown::centre2, 0));
+		tiles.push_back(placeTile({ 6.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_right, 1));
+																		  
+		tiles.push_back(placeTile({ 7.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 7.0f, 1.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
+																		  
+		tiles.push_back(placeTile({ 8.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 8.0f, 1.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 8.0f, 2.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 8.0f, 3.0f }, SpriteSheet::Tile::Brown::regular_solo, 1));
+																		  
+		tiles.push_back(placeTile({ 9.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
+		tiles.push_back(placeTile({ 9.0f, 1.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
+	}
+	//player
+	{
+		player = createObject();
 
-	auto transform = player1->getComponent<Transform>();
-	transform->setPos(-0.5f, -0.5f);
-	transform->setScale(l, b);
+		auto transform = player->getComponent<Transform>();
+		transform->setPos(-800.0f + box_size, 0.0f);
+		transform->setScale(box_size, box_size);
 
-	auto sprite = player1->addComponent<Texture>();
-	sprite->set(0);
+		auto texture = player->addComponent<Texture>();
+		texture->set(0);
 
-	auto animation = player1->addComponent<Animation>();
-	std::shared_ptr<FrameSet> flying_animation = std::make_shared<FrameSet>(3, Repeat::ALTERNATE);
-	flying_animation->setFrameData(0, Frame(SpriteSheet::Enemy::spikey_1));
-	flying_animation->setFrameData(1, Frame(SpriteSheet::Enemy::spikey_2));
-	flying_animation->setFrameData(2, Frame(SpriteSheet::Enemy::spikey_3));
-	animation->addAnimation("MOVE", flying_animation);
-	animation->setAnimation("MOVE");
+		auto collider = player->addComponent<Collider>();
+		collider->setSize({ 0.0f, 0.0f });
+		collider->setPosition({ 0.0f, -0.5f });
 
-	object_collection.add(player1);
+		auto animation = player->addComponent<Animation>();
+		auto walk_animation = std::make_shared<FrameSet>(5, Repeat::ALTERNATE);
+		walk_animation->setFrameData(0, Frame(SpriteSheet::Player::Blue::walk_1, 0.0625f));
+		walk_animation->setFrameData(1, Frame(SpriteSheet::Player::Blue::walk_2, 0.0625f));
+		walk_animation->setFrameData(2, Frame(SpriteSheet::Player::Blue::walk_3, 0.0625f));
+		walk_animation->setFrameData(3, Frame(SpriteSheet::Player::Blue::walk_4, 0.0625f));
+		walk_animation->setFrameData(4, Frame(SpriteSheet::Player::Blue::walk_5, 0.0625f));
+		animation->addAnimation("MOVE", walk_animation);
+
+		auto idle_animation = std::make_shared<FrameSet>(1);
+		idle_animation->setFrameData(0, Frame(SpriteSheet::Player::Blue::stand));
+		animation->addAnimation("IDLE", idle_animation);
+	}
 }
 
 void SceneGame::onDestroy() {
@@ -64,14 +124,85 @@ void SceneGame::captureInput() {
 }
 
 void SceneGame::update(float time_step) {
-	object_collection.processRemovedObjects();
-	object_collection.processAddedObjects();
-	object_collection.update(time_step);
+	auto collider = player->getComponent<Collider>();
+	isGrounded = false;
+	for (auto tile : tiles) {
+		if (tile->getComponent<Collider>()->collides(collider)) {
+			isGrounded = true;
+			break;
+		}
+	}
+
+	auto transform = player->getComponent<Transform>();
+	float speed = 100.0f;
+	float x_move = 0.0f, y_move = 0.0f;
+	if (input.isKeyPressed(Input::Key::RIGHT) && !input.isKeyPressed(Input::Key::LEFT)) {
+		x_move = speed * time_step;
+	} else if (input.isKeyPressed(Input::Key::LEFT) && !input.isKeyPressed(Input::Key::RIGHT)) {
+		x_move = -speed * time_step;
+	}
+	
+	if (isGrounded) {
+		if (input.isKeyPressed(Input::Key::UP))
+			y_speed = 200.0f;
+		else
+			y_speed = 0.0f;
+	} else {
+		if (y_speed > -400.0f)
+			y_speed -= 50.0f * time_step;
+	}
+
+	y_move = y_speed * time_step;
+
+	transform->move(x_move, y_move);
+	
+	auto animation = player->getComponent<Animation>();
+	if (x_move != 0.0f) {
+		animation->setAnimation("MOVE");
+		if (x_move > 0.0f) {
+			transform->flipY(false);
+		} else {
+			transform->flipY(true);
+		}
+	} else {
+		animation->setAnimation("IDLE");
+	}
+	
 }
 
-inline void SceneGame::lateUpdate(float time_step) {
-	object_collection.lateUpdate(time_step);
-	object_collection.calculateVertices(vertices);
+inline std::shared_ptr<GameObject> SceneGame::placeTile(vec<2> pos, const SubSprite type, int  collider_type) {
+	const float horizontal_tile_count = 1600.0f / box_size;
+	const float vertical_tile_count = 900.0f / box_size;
+	const float start_x = (-horizontal_tile_count * 0.5f + 0.5) * box_size;
+	const float start_y = (-vertical_tile_count * 0.5f + 0.5) * box_size;
+
+	auto tile = createObject();
+
+	auto transform = tile->getComponent<Transform>();
+	transform->setScale(box_size, box_size);
+	transform->setPos(pos * box_size + vec<2>(start_x, start_y));
+
+	auto texture = tile->addComponent<Texture>();
+	texture->set(1);
+	texture->setSprite(type);
+
+	using namespace SpriteSheet::Tile;
+
+	if (collider_type == 1) {
+		auto collider = tile->addComponent<Collider>();
+		collider->setSize({ 1.0f, 0.2f });
+		collider->setPosition({ 0.0f, 0.4f });
+	} else if (collider_type == 2){
+		auto collider = tile->addComponent<Collider>();
+		collider->setSize({ 0.5f, 0.2f });
+		collider->setPosition({0.25f, 0.4f });
+	} else if (collider_type == 3) {		
+		auto collider = tile->addComponent<Collider>();
+		collider->setSize({ 0.5f, 0.2f });
+		collider->setPosition({-0.25f, 0.4f });
+	}
+
+	return tile;
 }
 
 #endif // !SCENE_GAME_HPP

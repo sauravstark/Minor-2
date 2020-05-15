@@ -34,6 +34,7 @@ void SceneStateMachine::captureInput() {
 void SceneStateMachine::update(float time_step) {
 	if (active_scene) {
 		active_scene->update(time_step);
+		active_scene->postUpdate(time_step);
 	}
 }
 

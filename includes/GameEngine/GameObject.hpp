@@ -63,10 +63,10 @@ void GameObject::draw(Window& window) {
 template <typename T> std::shared_ptr<T> GameObject::addComponent() {
 	static_assert(std::is_base_of<Component, T>::value, "T must derive from Component");
 		
-		for (auto& existing_component : components) {			
+		for (auto& existing_component : components) {
 			if (std::dynamic_pointer_cast<T>(existing_component))
 				return std::dynamic_pointer_cast<T>(existing_component);
-		}	
+		}
 	
 	std::shared_ptr<T> new_component = std::make_shared<T>(this);
 	components.push_back(new_component);

@@ -12,6 +12,7 @@
 class ObjectCollection {
 public:
 	void add(std::shared_ptr<GameObject> object);
+	void remove(std::shared_ptr<GameObject> object);
 
 	void update(float time_step);
 	void lateUpdate(float time_step);
@@ -20,16 +21,21 @@ public:
 	void processAddedObjects();
 	void processRemovedObjects();
 
-	void calculateVertices(std::vector<Vertex>& vertices) const;
+	void calculateVertices();
 
 private:
 	std::set<std::shared_ptr<GameObject>> objects;
 	std::vector<std::shared_ptr<GameObject>> added_objects;
 	std::vector<std::shared_ptr<GameObject>> removed_objects;
+	std::vector<Vertex> vertices;
 };
 
 inline void ObjectCollection::add(std::shared_ptr<GameObject> obj) {
 	added_objects.push_back(obj);
+}
+
+inline void ObjectCollection::remove(std::shared_ptr<GameObject> object) {
+	removed_objects.push_back(object);
 }
 
 inline void ObjectCollection::update(float time_step) {
@@ -45,7 +51,7 @@ inline void ObjectCollection::lateUpdate(float time_step) {
 }
 
 inline void ObjectCollection::draw(Window& window) {
-	//
+	window.draw(vertices);
 }
 
 inline void ObjectCollection::processAddedObjects() {
@@ -76,7 +82,7 @@ inline void ObjectCollection::processRemovedObjects() {
 	}
 }
 
-inline void ObjectCollection::calculateVertices(std::vector<Vertex>& vertices) const {
+inline void ObjectCollection::calculateVertices() {
 
 	vertices.resize(objects.size() * 4);
 	int index = 0;
@@ -104,25 +110,25 @@ inline void ObjectCollection::calculateVertices(std::vector<Vertex>& vertices) c
 
 		mat<4> R = {
 			{
-				cos(ang_x) * cos(ang_y),
-				cos(ang_x) * sin(ang_y) * sin(ang_z) - sin(ang_x) * cos(ang_z),
-				cos(ang_x) * sin(ang_y) * cos(ang_z) + sin(ang_x) * sin(ang_z),
-				0.00f
+				cosf(ang_y) * cosf(ang_z),
+				-(cosf(ang_z) * sinf(ang_x) * sinf(ang_y)) - cosf(ang_x) * sinf(ang_z),
+				-(cosf(ang_x) * cosf(ang_z) * sinf(ang_y)) + sinf(ang_x) * sinf(ang_z),
+				0.0f
 			},
 			{
-				sin(ang_x) * cos(ang_y),
-				sin(ang_x) * sin(ang_y) * sin(ang_z) + cos(ang_x) * cos(ang_z),
-				sin(ang_x) * sin(ang_y) * cos(ang_z) - cos(ang_x) * sin(ang_z),
-				0.00f
+				cosf(ang_y) * sinf(ang_z),
+				cosf(ang_x) * cosf(ang_z) - sinf(ang_x) * sinf(ang_y) * sinf(ang_z),
+				-(cosf(ang_z) * sinf(ang_x)) - cosf(ang_x) * sinf(ang_y) * sinf(ang_z),
+				0.0f,
 			},
 			{
-				-sin(ang_y),
-				cos(ang_y) * sin(ang_z),
-				cos(ang_y) * cos(ang_z),
-				0.00f
+				sinf(ang_y),
+				cosf(ang_y) * sinf(ang_x),
+				cosf(ang_x) * cosf(ang_y),
+				0.0f
 			},
-			{	
-				0.00f, 0.00f, 0.00f, 1.00f
+			{
+				0.0f, 0.0f, 0.0f, 1.0f
 			}
 		};
 
@@ -133,7 +139,7 @@ inline void ObjectCollection::calculateVertices(std::vector<Vertex>& vertices) c
 			{ 0.00f, 0.00f, 0.00f, 1.00f },
 		};
 
-		mat<4> transform_matrix = T * R * S;
+		mat<4> transform_matrix = T * S * R;
 
 		vec<4> pos1 = transform_matrix * vec<4>(-0.50f, -0.50f, 0.00f, 1.00f);
 		vec<4> pos2 = transform_matrix * vec<4>( 0.50f, -0.50f, 0.00f, 1.00f);

@@ -48,6 +48,7 @@ Renderer::Renderer() :
 
 	texture(shader, 0, "assets/textures/characters.png");
 	texture(shader, 1, "assets/textures/tiles.png");
+	texture(shader, 2, "assets/textures/background.png");
 	
 	GLCall(glClearColor(0.0f, 0.0f, 1.0f, 1.0f));
 }

@@ -1,7 +1,7 @@
 #ifndef VEC_HPP
 #define VEC_HPP
 
-#define PI 3.14
+#define PI 3.14f
 
 #include <cassert>
 
@@ -16,6 +16,10 @@ public:
 	vec(float x1, float x2, float x3);
 	vec(float x1, float x2, float x3, float x4);
 	float& operator[](unsigned int index);
+	vec<dim> operator+(const vec<dim> r_val);
+	vec<dim> operator-(const vec<dim> r_val);
+	vec<dim> operator*(const vec<dim> r_val);
+	vec<dim> operator*(const float r_val);
 	float get(unsigned int index) const;
 };
 
@@ -59,6 +63,57 @@ vec<dim>::vec(float x1, float x2, float x3, float x4) {
 template<unsigned int dim>
 float& vec<dim>::operator[](unsigned int index) {
 	return vals[index];
+}
+
+template<unsigned int dim>
+vec<dim> vec<dim>::operator+(const vec<dim> arg)
+{
+	vec<dim> l_val = *this, r_val = arg;
+	vec<dim> ret;
+
+	for (unsigned i = 0; i < dim; ++i) {
+		ret[i] = l_val[i] + r_val[i];
+	}
+
+	return ret;
+}
+
+template<unsigned int dim>
+vec<dim> vec<dim>::operator-(const vec<dim> arg)
+{
+	vec<dim> l_val = *this, r_val = arg;
+	vec<dim> ret;
+
+	for (unsigned i = 0; i < dim; ++i) {
+		ret[i] = l_val[i] - r_val[i];
+	}
+
+	return ret;
+}
+
+template<unsigned int dim>
+vec<dim> vec<dim>::operator*(const vec<dim> arg)
+{
+	vec<dim> l_val = *this, r_val = arg;
+	vec<dim> ret;
+
+	for (unsigned i = 0; i < dim; ++i) {
+		ret[i] = l_val[i] * r_val[i];
+	}
+
+	return ret;
+}
+
+template<unsigned int dim>
+vec<dim> vec<dim>::operator*(const float arg)
+{
+	vec<dim> ret;
+
+	for (unsigned i = 0; i < dim; ++i) {
+		ret[i] = vals[i] * arg;
+	}
+
+	return ret;
 }
 
 template<unsigned int dim>
