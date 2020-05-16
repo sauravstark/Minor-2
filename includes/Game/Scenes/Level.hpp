@@ -12,7 +12,26 @@
 #include "..//Sprites/SpriteSheet.hpp"
 
 #include <vector>
+#include <map>
 #include <cstdlib>
+#include <algorithm>
+
+
+struct BulletStats {
+	float attack;
+	float speed;
+};
+
+struct EnemyStats {
+	EnemyStats(int seed);
+	EnemyStats(const EnemyStats& other);
+	float health;
+	float speed;
+	float cooldown;
+	float attack;
+	int type;
+	void resetCooldown();
+};
 
 class SceneGame : public Scene {
 public:
@@ -23,13 +42,21 @@ public:
 private:
 	Input input;
 	std::shared_ptr<GameObject> player;
-	std::vector<std::shared_ptr<GameObject>> tiles;
 	std::shared_ptr<GameObject> background;
-	const float box_size = 50.0f;
-	float y_speed = 0.0f;
-	bool isGrounded = false;
-	//collider type 1: middle, type 2: left_half, type 3: right_half
-	std::shared_ptr<GameObject> placeTile(vec<2> pos, const SubSprite type, int collider_type);
+	std::vector<std::pair<std::shared_ptr<GameObject>, EnemyStats>> enemies;
+	std::vector<std::pair<std::shared_ptr<GameObject>, BulletStats>> e_bullets;
+	std::vector<std::pair<std::shared_ptr<GameObject>, std::shared_ptr<GameObject>>> p_bullets;
+	float box_size = 100.0f;
+	float cooldown_time = 0.0f;
+
+	void spawn_enemy();
+	void fireEnemyBullet(std::pair<std::shared_ptr<GameObject>, EnemyStats> pair);
+	void move_player(float time_step);
+	void update_enemy(float time_step);
+	void updateEnemyBullet(float time_step);
+	void end();
+
+	std::vector<std::shared_ptr<GameObject>> inactive_objects;
 };
 
 void SceneGame::onCreate() {
@@ -44,74 +71,23 @@ void SceneGame::onCreate() {
 		
 		auto texture = background->addComponent<Texture>();
 		texture->set(2);
-		texture->setSprite(SpriteSheet::Background::Blue);
-	}
-	//Tiles
-	{
-		tiles.push_back(placeTile({ 0.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 0.0f, 1.0f }, SpriteSheet::Tile::Brown::centre2, 0));
-		tiles.push_back(placeTile({ 0.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
-																		  
-		tiles.push_back(placeTile({ 1.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 1.0f, 1.0f }, SpriteSheet::Tile::Brown::baseless_half_left, 2));
-		tiles.push_back(placeTile({ 1.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_right, 1));
-																		  
-		tiles.push_back(placeTile({ 2.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 2.0f, 1.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
-																		  
-		tiles.push_back(placeTile({ 3.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 3.0f, 1.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
-																		  
-		tiles.push_back(placeTile({ 4.0f, 0.0f }, SpriteSheet::Tile::Brown::centre3, 0));
-		tiles.push_back(placeTile({ 4.0f, 1.0f }, SpriteSheet::Tile::Brown::baseless_half_right, 3));
-		tiles.push_back(placeTile({ 4.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_left, 1));
-																		  
-		tiles.push_back(placeTile({ 5.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 5.0f, 1.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 5.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
-																		  
-		tiles.push_back(placeTile({ 6.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 6.0f, 1.0f }, SpriteSheet::Tile::Brown::centre2, 0));
-		tiles.push_back(placeTile({ 6.0f, 2.0f }, SpriteSheet::Tile::Brown::regular_right, 1));
-																		  
-		tiles.push_back(placeTile({ 7.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 7.0f, 1.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
-																		  
-		tiles.push_back(placeTile({ 8.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 8.0f, 1.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 8.0f, 2.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 8.0f, 3.0f }, SpriteSheet::Tile::Brown::regular_solo, 1));
-																		  
-		tiles.push_back(placeTile({ 9.0f, 0.0f }, SpriteSheet::Tile::Brown::centre1, 0));
-		tiles.push_back(placeTile({ 9.0f, 1.0f }, SpriteSheet::Tile::Brown::regular_middle, 1));
 	}
 	//player
 	{
 		player = createObject();
 
 		auto transform = player->getComponent<Transform>();
-		transform->setPos(-800.0f + box_size, 0.0f);
 		transform->setScale(box_size, box_size);
 
 		auto texture = player->addComponent<Texture>();
 		texture->set(0);
+		texture->setSprite(SpriteSheet::Player::red_fighter5);
 
 		auto collider = player->addComponent<Collider>();
-		collider->setSize({ 0.0f, 0.0f });
-		collider->setPosition({ 0.0f, -0.5f });
-
-		auto animation = player->addComponent<Animation>();
-		auto walk_animation = std::make_shared<FrameSet>(5, Repeat::ALTERNATE);
-		walk_animation->setFrameData(0, Frame(SpriteSheet::Player::Blue::walk_1, 0.0625f));
-		walk_animation->setFrameData(1, Frame(SpriteSheet::Player::Blue::walk_2, 0.0625f));
-		walk_animation->setFrameData(2, Frame(SpriteSheet::Player::Blue::walk_3, 0.0625f));
-		walk_animation->setFrameData(3, Frame(SpriteSheet::Player::Blue::walk_4, 0.0625f));
-		walk_animation->setFrameData(4, Frame(SpriteSheet::Player::Blue::walk_5, 0.0625f));
-		animation->addAnimation("MOVE", walk_animation);
-
-		auto idle_animation = std::make_shared<FrameSet>(1);
-		idle_animation->setFrameData(0, Frame(SpriteSheet::Player::Blue::stand));
-		animation->addAnimation("IDLE", idle_animation);
+	}
+	//enemy
+	{
+		spawn_enemy();
 	}
 }
 
@@ -124,85 +100,278 @@ void SceneGame::captureInput() {
 }
 
 void SceneGame::update(float time_step) {
-	auto collider = player->getComponent<Collider>();
-	isGrounded = false;
-	for (auto tile : tiles) {
-		if (tile->getComponent<Collider>()->collides(collider)) {
-			isGrounded = true;
-			break;
-		}
+	move_player(time_step);
+	update_enemy(time_step);
+	updateEnemyBullet(time_step);
+	cooldown_time -= time_step;
+	if (cooldown_time <= 0.0f)
+		spawn_enemy();
+}
+
+inline void SceneGame::spawn_enemy() {
+	cooldown_time = 5.0f;
+	int seed = rand();
+	std::shared_ptr<GameObject> new_enemy;
+	if (!inactive_objects.empty()) {
+		new_enemy = inactive_objects[inactive_objects.size() - 1];
+		inactive_objects.pop_back();
+	} else {
+		new_enemy = createObject();
+	}
+	EnemyStats new_stat(seed);
+	enemies.push_back({ new_enemy, new_stat });
+
+	auto transform = new_enemy->getComponent<Transform>();
+	transform->setScale(box_size, box_size);
+	float dir = rand();
+	transform->setPos(-800.0f * cosf(dir), -800.0f * sinf(dir));
+
+	auto texture = new_enemy->addComponent<Texture>();
+	texture->set(0);
+	switch (seed % 5)
+	{
+	case 0:
+		texture->setSprite(SpriteSheet::Player::cargoship);
+		transform->setScale(box_size * 0.5f, box_size);
+		break;
+	case 1:
+		texture->setSprite(SpriteSheet::Player::carrier);
+		break;
+	case 2:
+		texture->setSprite(SpriteSheet::Player::destroyer);
+		break;
+	case 3:
+		texture->setSprite(SpriteSheet::Player::cruiser);
+		transform->setScale(box_size * 0.5f, box_size);
+		break;
+	case 4:
+		texture->setSprite(SpriteSheet::Player::shuttle);
+		transform->setScale(box_size * 0.5f, box_size);
+		break;
+	}
+}
+
+inline void SceneGame::fireEnemyBullet(std::pair<std::shared_ptr<GameObject>, EnemyStats> pair) {
+	std::shared_ptr<GameObject> new_bullet;
+	if (!inactive_objects.empty()) {
+		new_bullet = inactive_objects[inactive_objects.size() - 1];
+		inactive_objects.pop_back();
+	}
+	else {
+		new_bullet = createObject();
+	}
+	
+	EnemyStats& enemy_stat = pair.second;
+	BulletStats new_stat;
+	new_stat.attack = enemy_stat.attack;
+	new_stat.speed = enemy_stat.speed * 4;
+	e_bullets.push_back({ new_bullet, new_stat });
+
+	auto transform = new_bullet->getComponent<Transform>();
+	transform->setScale(box_size * 0.5f, box_size * 0.5f);
+	auto e_transform = pair.first->getComponent<Transform>();
+	transform->setPos(e_transform->getPosition());
+	transform->setRot(e_transform->getRotation());
+	auto texture = new_bullet->addComponent<Texture>();
+	texture->set(1);
+	switch (enemy_stat.type)
+	{
+	case 0:
+		texture->setSprite(SpriteSheet::Bullet::Red::_1);
+		//transform->setScale(box_size * 0.5f, box_size);
+		break;
+	case 1:
+		texture->setSprite(SpriteSheet::Bullet::Red::_2);
+		break;
+	case 2:
+		texture->setSprite(SpriteSheet::Bullet::Red::_3);
+		break;
+	case 3:
+		texture->setSprite(SpriteSheet::Bullet::Red::_5);
+		//transform->setScale(box_size * 0.5f, box_size);
+		break;
+	case 4:
+		texture->setSprite(SpriteSheet::Bullet::Red::_8);
+		//transform->setScale(box_size * 0.5f, box_size);
+		break;
+	}
+}
+
+inline void SceneGame::move_player(float time_step) {
+	float speed = 250.0f;
+	float req_dir = 0.0f;
+	int mov_x = 0, mov_y = 0;
+
+	if (input.isKeyPressed(Input::Key::RIGHT) && !input.isKeyPressed(Input::Key::LEFT)) {
+		mov_x = 1;
+	}
+	else if (input.isKeyPressed(Input::Key::LEFT) && !input.isKeyPressed(Input::Key::RIGHT)) {
+		mov_x = -1;
+	}
+
+	if (input.isKeyPressed(Input::Key::UP) && !input.isKeyPressed(Input::Key::DOWN)) {
+		mov_y = 1;
+	}
+	else if (input.isKeyPressed(Input::Key::DOWN) && !input.isKeyPressed(Input::Key::UP)) {
+		mov_y = -1;
+	}
+
+	if (mov_y == 1) {
+		if (mov_x == 1)
+			req_dir = PI * 1.75f;
+		else if (mov_x == -1)
+			req_dir = PI * 0.25f;
+		else
+			req_dir = 0.0f;
+	}
+	else if (mov_y == -1) {
+		if (mov_x == 1)
+			req_dir = PI * 1.25f;
+		else if (mov_x == -1)
+			req_dir = PI * 0.75f;
+		else
+			req_dir = PI;
+	}
+	else {
+		if (mov_x == 1)
+			req_dir = PI * 1.5f;
+		else if (mov_x == -1)
+			req_dir = PI * 0.5f;
 	}
 
 	auto transform = player->getComponent<Transform>();
-	float speed = 100.0f;
-	float x_move = 0.0f, y_move = 0.0f;
-	if (input.isKeyPressed(Input::Key::RIGHT) && !input.isKeyPressed(Input::Key::LEFT)) {
-		x_move = speed * time_step;
-	} else if (input.isKeyPressed(Input::Key::LEFT) && !input.isKeyPressed(Input::Key::RIGHT)) {
-		x_move = -speed * time_step;
-	}
-	
-	if (isGrounded) {
-		if (input.isKeyPressed(Input::Key::UP))
-			y_speed = 200.0f;
-		else
-			y_speed = 0.0f;
-	} else {
-		if (y_speed > -400.0f)
-			y_speed -= 50.0f * time_step;
-	}
+	float cur_dir = transform->getRotation();
+	cur_dir = atan2f(sin(cur_dir), cos(cur_dir));
+	cur_dir = (cur_dir < 0.0f ? 2 * PI + cur_dir : cur_dir);
 
-	y_move = y_speed * time_step;
+	float mov = 0.0f;
 
-	transform->move(x_move, y_move);
-	
-	auto animation = player->getComponent<Animation>();
-	if (x_move != 0.0f) {
-		animation->setAnimation("MOVE");
-		if (x_move > 0.0f) {
-			transform->flipY(false);
-		} else {
-			transform->flipY(true);
+	if (abs(req_dir - cur_dir) > PI * 0.05f) {
+		if (abs(req_dir - cur_dir) <= PI) {
+			if (req_dir - cur_dir > 0.0f)
+				mov = 1.0f;
+			else
+				mov = -1.0f;
 		}
-	} else {
-		animation->setAnimation("IDLE");
+		else {
+			if (req_dir - cur_dir > 0.0f)
+				mov = -1.0f;
+			else
+				mov = 1.0f;
+		}
 	}
-	
+
+	cur_dir += mov * PI * 0.5 * time_step;
+	transform->setRot(cur_dir);
+	transform->move(speed * cos(cur_dir + PI * 0.5f) * time_step, speed * sin(cur_dir + PI * 0.5f) * time_step);
 }
 
-inline std::shared_ptr<GameObject> SceneGame::placeTile(vec<2> pos, const SubSprite type, int  collider_type) {
-	const float horizontal_tile_count = 1600.0f / box_size;
-	const float vertical_tile_count = 900.0f / box_size;
-	const float start_x = (-horizontal_tile_count * 0.5f + 0.5) * box_size;
-	const float start_y = (-vertical_tile_count * 0.5f + 0.5) * box_size;
+inline void SceneGame::update_enemy(float time_step) {
+	vec<2> p_pos = player->getComponent<Transform>()->getPosition();
+	for (auto pair: enemies) {
+		auto enemy = pair.first;
+		auto& stat = pair.second;
+		auto e_transform = enemy->getComponent<Transform>();
+		vec<2> e_pos = e_transform->getPosition();
+		float delta_x = p_pos[0] - e_pos[0];
+		float delta_y = p_pos[1] - e_pos[1];
+		float dir = atan2f(delta_y, delta_x);
+		float x_mov = stat.speed * cos(dir) * time_step;
+		float y_mov = stat.speed * sin(dir) * time_step;
 
-	auto tile = createObject();
+		float dist = sqrtf(powf(delta_x, 2) + powf(delta_y, 2));
+		if (dist > stat.speed * time_step) {
+			e_transform->move(x_mov, y_mov);
+			e_transform->setRot(dir + PI * 0.5f);
+		}
 
-	auto transform = tile->getComponent<Transform>();
-	transform->setScale(box_size, box_size);
-	transform->setPos(pos * box_size + vec<2>(start_x, start_y));
-
-	auto texture = tile->addComponent<Texture>();
-	texture->set(1);
-	texture->setSprite(type);
-
-	using namespace SpriteSheet::Tile;
-
-	if (collider_type == 1) {
-		auto collider = tile->addComponent<Collider>();
-		collider->setSize({ 1.0f, 0.2f });
-		collider->setPosition({ 0.0f, 0.4f });
-	} else if (collider_type == 2){
-		auto collider = tile->addComponent<Collider>();
-		collider->setSize({ 0.5f, 0.2f });
-		collider->setPosition({0.25f, 0.4f });
-	} else if (collider_type == 3) {		
-		auto collider = tile->addComponent<Collider>();
-		collider->setSize({ 0.5f, 0.2f });
-		collider->setPosition({-0.25f, 0.4f });
+		stat.cooldown -= time_step;
+		if (stat.cooldown <= 0.0f) {
+			fireEnemyBullet(pair);
+			stat.resetCooldown();
+			
+		}
 	}
+}
 
-	return tile;
+inline void SceneGame::updateEnemyBullet(float time_step) {
+	auto check = [this, &time_step](std::pair<std::shared_ptr<GameObject>, BulletStats> pair) {
+		auto bullet = pair.first;
+		auto stat = pair.second;
+		auto transform = bullet->transform;
+		auto angle = transform->getRotation();
+		vec<2> delta = vec<2>(cosf(angle - PI * 0.5f), sin(angle - PI * 0.5f)) * stat.speed * time_step;
+		transform->move(delta);
+		auto pos = transform->getPosition();
+		if (pos[0] < -800.0f || pos[0] > 800.0f || pos[1] < -450.0f || pos[1] > 450.0f) {
+			transform->setPos({ 1600.0f, 900.0f });
+			transform->setScale({ 0.0f, 0.0f });
+			inactive_objects.push_back(bullet);
+			return true;
+		}
+		return false;
+	};
+	std::remove_if(e_bullets.begin(), e_bullets.end(), check);
+}
+
+inline void SceneGame::end() {
+}
+
+inline EnemyStats::EnemyStats(int seed) :
+	type(seed % 5), health(0.0f), cooldown(0.0f), speed(0.0f), attack(0.0f) {
+	switch (type)
+	{
+	case 0:
+		health = 100.0f;
+		speed = 150.0f;
+		attack = 50.0f;
+		break;
+	case 1:
+		health = 200.0f;
+		speed = 200.0f;
+		attack = 30.0f;
+		break;
+	case 2:
+		health = 50.0f;
+		speed = 50.0f;
+		attack = 150.0f;
+		break;
+	case 3:
+		health = 150.0f;
+		speed = 150.0f;
+		attack = 60.0f;
+		break;
+	case 4:
+		health = 120.0f;
+		speed = 150.0f;
+		attack = 80.0f;
+		break;
+	}
+	resetCooldown();
+}
+
+inline EnemyStats::EnemyStats(const EnemyStats& other) :
+	health(other.health), speed(other.speed),
+	cooldown(other.cooldown), attack(other.attack), type(other.type){}
+
+inline void EnemyStats::resetCooldown() {
+	switch (type) {
+	case 0:
+		cooldown = 3.0f;
+		break;
+	case 1:
+		cooldown = 5.0f;
+		break;
+	case 2:
+		cooldown = 3.0f;
+		break;
+	case 3:
+		cooldown = 4.0f;
+		break;
+	case 4:
+		cooldown = 4.0f;
+		break;
+	}
 }
 
 #endif // !SCENE_GAME_HPP

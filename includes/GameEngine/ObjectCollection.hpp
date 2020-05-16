@@ -77,8 +77,7 @@ inline void ObjectCollection::processRemovedObjects() {
 		for (const auto& obj : removed_objects) {
 			objects.erase(obj);
 		}
-
-		removed_objects.clear();
+		std::vector<std::shared_ptr<GameObject>>().swap(removed_objects);
 	}
 }
 
@@ -139,7 +138,7 @@ inline void ObjectCollection::calculateVertices() {
 			{ 0.00f, 0.00f, 0.00f, 1.00f },
 		};
 
-		mat<4> transform_matrix = T * S * R;
+		mat<4> transform_matrix = T * R * S;
 
 		vec<4> pos1 = transform_matrix * vec<4>(-0.50f, -0.50f, 0.00f, 1.00f);
 		vec<4> pos2 = transform_matrix * vec<4>( 0.50f, -0.50f, 0.00f, 1.00f);

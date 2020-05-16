@@ -1,7 +1,7 @@
 #ifndef VEC_HPP
 #define VEC_HPP
 
-#define PI 3.14f
+#define PI 3.1415927f
 
 #include <cassert>
 
