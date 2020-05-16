@@ -58,6 +58,8 @@ private:
 	void firePlayerBullet();
 	void spawnEnemy();
 	void moveEnemy(float time_step);
+	void killEnemy(unsigned index);
+	void killPlayer();
 
 	void findPBTarget(unsigned b_index);
 };
@@ -154,11 +156,17 @@ inline void SceneGame::updatePlayerBullets(float time_step) {
 			auto b_stat = p_bullets[i].second;
 			float cur_dir = b_transform->getRotation();
 			auto disp = e_transform->getPosition() - b_transform->getPosition();
-			float req_dir = atan2f(disp[1], disp[0]) - PI * 0.5f;
-			float nex_dir = calcRot(cur_dir, req_dir, b_stat.speed, time_step);
 			float speed = b_stat.speed;
-			b_transform->setRot(nex_dir);
-			b_transform->move(speed * cos(nex_dir + PI * 0.5f) * time_step, speed * sin(nex_dir + PI * 0.5f) * time_step);
+			if (speed * time_step < sqrt(disp[0] * disp[0] + disp[1] * disp[1])) {
+				float req_dir = atan2f(disp[1], disp[0]) - PI * 0.5f;
+				float nex_dir = calcRot(cur_dir, req_dir, b_stat.speed, time_step);
+				b_transform->setRot(nex_dir);
+				b_transform->move(speed * cos(nex_dir + PI * 0.5f) * time_step, speed * sin(nex_dir + PI * 0.5f) * time_step);
+			} else {
+				p_bullets[i].second.isActive = false;
+				p_bullets[i].first->transform->setPos(1000.0f, 1000.0f);
+				killEnemy(target_index);
+			}
 		}
 	}
 }
@@ -295,6 +303,14 @@ inline void SceneGame::moveEnemy(float time_step) {
 			}
 		}
 	}
+}
+
+inline void SceneGame::killEnemy(unsigned index) {
+	enemies[index].second.isActive = false;
+	enemies[index].first->transform->setPos(1000.0f, 1000.0f);
+}
+
+inline void SceneGame::killPlayer() {
 }
 
 inline void SceneGame::findPBTarget(unsigned b_index) {
