@@ -32,6 +32,8 @@ struct PBStat {
 	unsigned target_index;
 };
 
+float calcRot(float cur_dir, float des_dir, float speed, float time_step);
+
 class SceneGame : public Scene {
 public:
 	void onCreate() override;
@@ -144,6 +146,21 @@ inline void SceneGame::updateEnemies(float time_step) {
 }
 
 inline void SceneGame::updatePlayerBullets(float time_step) {
+	for (unsigned i = 0; i < 128; ++i) {
+		if (p_bullets[i].second.isActive) {
+			unsigned target_index = p_bullets[i].second.target_index;
+			auto b_transform = p_bullets[i].first->transform;
+			auto e_transform = enemies[target_index].first->transform;
+			auto b_stat = p_bullets[i].second;
+			float cur_dir = b_transform->getRotation();
+			auto disp = e_transform->getPosition() - b_transform->getPosition();
+			float req_dir = atan2f(disp[1], disp[0]) - PI * 0.5f;
+			float nex_dir = calcRot(cur_dir, req_dir, b_stat.speed, time_step);
+			float speed = b_stat.speed;
+			b_transform->setRot(nex_dir);
+			b_transform->move(speed * cos(nex_dir + PI * 0.5f) * time_step, speed * sin(nex_dir + PI * 0.5f) * time_step);
+		}
+	}
 }
 
 inline void SceneGame::updateEnemyBullets(float time_step) {
@@ -170,17 +187,10 @@ inline void SceneGame::movePlayer(float time_step) {
 	else if (S &&  E && !S && !W)	req_dir = PI * 1.25f;
 	else if (S &&  W && !S && !E)	req_dir = PI * 0.25f;
 
-	if (abs(req_dir - cur_dir) > PI * 0.5 * time_step) {
-		if (abs(req_dir - cur_dir) <= PI)
-			cur_dir += sgn(req_dir - cur_dir) * PI * 0.5 * time_step;
-		else
-			cur_dir += sgn(cur_dir - req_dir) * PI * 0.5 * time_step;
-	} else {
-		cur_dir = req_dir;
-	}
+	float nex_dir = calcRot(cur_dir, req_dir, speed, time_step);
 
-	transform->setRot(cur_dir);
-	transform->move(speed * cos(cur_dir + PI * 0.5f) * time_step, speed * sin(cur_dir + PI * 0.5f) * time_step);
+	transform->setRot(nex_dir);
+	transform->move(speed * cos(nex_dir + PI * 0.5f) * time_step, speed * sin(nex_dir + PI * 0.5f) * time_step);
 }
 
 inline void SceneGame::firePlayerBullet() {
@@ -188,7 +198,7 @@ inline void SceneGame::firePlayerBullet() {
 		for (unsigned int i = 0; i < 128; ++i) {
 			if (p_bullets[i].second.isActive == false) {
 				p_bullets[i].second.isActive = true;
-				p_bullets[i].second.speed = p_stat.speed * 4;
+				p_bullets[i].second.speed = p_stat.speed * 2;
 				p_bullets[i].second.attack = p_stat.attack;
 
 				auto bullet = p_bullets[i].first;
@@ -214,7 +224,7 @@ inline void SceneGame::firePlayerBullet() {
 				
 				transform->setPos(b_pos);
 				transform->setRot(b_rot);
-				transform->setScale(box_size * 0.25f, box_size * 0.25f);
+				transform->setScale(box_size * 0.5f, box_size * 0.5f);
 				texture->set(1);
 				texture->setSprite(SpriteSheet::Bullet::Blue::_3);
 				findPBTarget(i);
@@ -307,6 +317,27 @@ inline void SceneGame::findPBTarget(unsigned b_index) {
 		}
 	}
 	p_bullets[b_index].second.target_index = nearest;
+}
+
+float calcRot(float cur_dir, float req_dir, float speed, float time_step) {
+	
+	float rf = speed * speed / 100000.0f;
+	
+	cur_dir = atan2f(sin(cur_dir), cos(cur_dir));
+	cur_dir = (cur_dir < 0.0f ? 2 * PI + cur_dir : cur_dir);
+	req_dir = atan2f(sin(req_dir), cos(req_dir));
+	req_dir = (req_dir < 0.0f ? 2 * PI + req_dir : req_dir);
+
+	if (abs(req_dir - cur_dir) > PI * rf * time_step) {
+		if (abs(req_dir - cur_dir) <= PI)
+			cur_dir += sgn(req_dir - cur_dir) * PI * rf * time_step;
+		else
+			cur_dir += sgn(cur_dir - req_dir) * PI * rf * time_step;
+	} else {
+		cur_dir = req_dir;
+	}
+
+	return cur_dir;
 }
 
 #endif // !SCENE_GAME_HPP
