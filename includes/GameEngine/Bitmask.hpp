@@ -18,7 +18,7 @@ public:
     void clearAll(); 
 };
 
-BitMask::BitMask() : bits(std::vector<bool>(32, false)) { }
+BitMask::BitMask() : bits(std::vector<bool>(64, false)) { }
 
 void BitMask::setMask(BitMask& other) {
     bits = other.getMask();
