@@ -11,6 +11,14 @@ template <typename T> int sgn(T val) {
 	return (T(0) < val) - (val < T(0));
 }
 
+struct EStat {
+	bool isActive;
+	float speed;
+	float attack;
+	float health;
+	float cooldown;
+};
+
 class SceneGame : public Scene {
 public:
 	void onCreate() override;
@@ -19,15 +27,17 @@ public:
 	void update(float time_step) override;
 private:
 	Input input;
-	std::shared_ptr<GameObject> player;
 	float box_size = 100.0f;
+	float spawn_cooldown = 0.0f;
+	std::shared_ptr<GameObject> player;
+	std::pair<std::shared_ptr<GameObject>, EStat> enemies[16] = { {nullptr, EStat()} };
 
 	void updatePlayer(float time_step);
 	void updateEnemies(float time_step);
 	void updatePlayerBullets(float time_step);
 	void updateEnemyBullets(float time_step);
 
-	void spawn_enemy();
+	void spawnEnemy();
 };
 
 void SceneGame::onCreate() {
@@ -58,7 +68,12 @@ void SceneGame::onCreate() {
 	}
 	//enemy
 	{
-		//spawn_enemy();
+		for (unsigned i = 0; i < 16; ++i) {
+			enemies[i].first = createObject();
+			enemies[i].first->addComponent<Texture>()->set(0);
+			enemies[i].first->addComponent<Collider>();
+			enemies[i].second.isActive = false;
+		}
 	}
 }
 
@@ -72,13 +87,9 @@ void SceneGame::captureInput() {
 
 void SceneGame::update(float time_step) {
 	updatePlayer(time_step);
-	/*
-	update_enemy(time_step);
-	updateEnemyBullet(time_step);
-	cooldown_time -= time_step;
-	if (cooldown_time <= 0.0f)
-		spawn_enemy();
-	*/
+	updateEnemies(time_step);
+	updatePlayerBullets(time_step);
+	updateEnemyBullets(time_step);
 }
 
 inline void SceneGame::updatePlayer(float time_step) {
@@ -118,6 +129,27 @@ inline void SceneGame::updatePlayer(float time_step) {
 }
 
 inline void SceneGame::updateEnemies(float time_step) {
+	spawn_cooldown -= time_step;
+	if (spawn_cooldown <= 0.0f) {
+		spawnEnemy();
+	}
+	auto p_pos = player->getComponent<Transform>()->getPosition();
+	for (unsigned i = 0; i < 16; ++i) {
+		if (enemies[i].second.isActive) {
+			auto enemy = enemies[i].first;
+			auto stat = enemies[i].second;
+			auto transform = enemy->getComponent<Transform>();
+			auto e_pos = transform->getPosition();
+			float step_length = stat.speed * time_step;
+			vec<2> disp = p_pos - e_pos;
+			if (step_length < sqrtf(disp[0] * disp[0] + disp[1] * disp[1])) {
+				disp.normalize();
+				float angle = atan2f(disp[1], disp[0]) - PI * 0.5f;
+				transform->move(disp * step_length);
+				transform->setRot(angle);
+			}
+		}
+	}
 }
 
 inline void SceneGame::updatePlayerBullets(float time_step) {
@@ -126,7 +158,46 @@ inline void SceneGame::updatePlayerBullets(float time_step) {
 inline void SceneGame::updateEnemyBullets(float time_step) {
 }
 
-inline void SceneGame::spawn_enemy() {
+inline void SceneGame::spawnEnemy() {
+	for (unsigned i = 0; i < 16; ++i) {
+		if (enemies[i].second.isActive == false) {
+			enemies[i].second.isActive = true;
+			auto enemy = enemies[i].first;
+			auto transform = enemy->getComponent<Transform>();
+			auto texture = enemy->getComponent<Texture>();
+			float dir = rand();
+			transform->setPos(1000 * cos(dir), 1000 * sin(dir));
+			unsigned type = rand() % 5;
+			switch (type)
+			{
+			case 0:
+				texture->setSprite(SpriteSheet::Player::cargoship);
+				transform->setScale(box_size * 0.5f, box_size);
+				enemies[i].second.speed = 250.0f;
+				break;
+			case 1:
+				texture->setSprite(SpriteSheet::Player::carrier);
+				enemies[i].second.speed = 150.0f;
+				break;
+			case 2:
+				texture->setSprite(SpriteSheet::Player::cruiser);
+				transform->setScale(box_size * 0.5f, box_size);
+				enemies[i].second.speed = 100.0f;
+				break;
+			case 3:
+				texture->setSprite(SpriteSheet::Player::destroyer);
+				enemies[i].second.speed = 200.0f;
+				break;
+			case 4:
+				texture->setSprite(SpriteSheet::Player::shuttle);
+				transform->setScale(box_size * 0.5f, box_size);
+				enemies[i].second.speed = 300.0f;
+				break;
+			}
+			break;
+		}
+	}
+	spawn_cooldown = 5.0f;
 }
 
 #endif // !SCENE_GAME_HPP

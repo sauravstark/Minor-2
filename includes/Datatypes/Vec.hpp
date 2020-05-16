@@ -21,6 +21,7 @@ public:
 	vec<dim> operator*(const vec<dim> r_val);
 	vec<dim> operator*(const float r_val);
 	float get(unsigned int index) const;
+	void normalize();
 };
 
 template<unsigned int dim>
@@ -120,6 +121,23 @@ template<unsigned int dim>
 inline float vec<dim>::get(unsigned int index) const
 {
 	return vals[index];
+}
+
+template<unsigned int dim>
+inline void vec<dim>::normalize() {
+	float mag = 0.0f;
+	for (unsigned i = 0; i < dim; ++i) {
+		mag += vals[i] * vals[i];
+	}
+	mag = sqrtf(mag);
+	if (mag != 0.0f) {
+		for (unsigned i = 0; i < dim; ++i)
+			vals[i] /= mag;
+	} else {
+		mag = sqrtf(float(dim));
+		for (unsigned i = 0; i < dim; ++i)
+			vals[i] = 1 / mag;
+	}
 }
 
 #endif //!VEC_HPP
