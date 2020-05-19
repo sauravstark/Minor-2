@@ -32,7 +32,16 @@ struct PBStat {
 	unsigned target_index;
 };
 
+struct ExpStat {
+	bool isActive = false;
+	float duration = 0.0f;
+};
+
 float calcRot(float cur_dir, float des_dir, float speed, float time_step);
+
+const unsigned e_count = 16;
+const unsigned pb_count = 128;
+const unsigned exp_count = 256;
 
 class SceneGame : public Scene {
 public:
@@ -46,13 +55,15 @@ private:
 	float spawn_cooldown = 0.0f;
 	std::shared_ptr<GameObject> player;
 	PStat p_stat;
-	std::pair<std::shared_ptr<GameObject>, EStat> enemies[16] = { { nullptr, EStat() } };
-	std::pair<std::shared_ptr<GameObject>, PBStat> p_bullets[128] = { { nullptr, PBStat() } };
+	std::pair<std::shared_ptr<GameObject>, EStat> enemies[e_count] = { { nullptr, EStat() } };
+	std::pair<std::shared_ptr<GameObject>, PBStat> p_bullets[pb_count] = { { nullptr, PBStat() } };
+	std::pair<std::shared_ptr<GameObject>, ExpStat> explosions[exp_count] = { { nullptr, ExpStat() } };
 
 	void updatePlayer(float time_step);
 	void updateEnemies(float time_step);
 	void updatePlayerBullets(float time_step);
 	void updateEnemyBullets(float time_step);
+	void updateExplosions(float time_step);
 
 	void movePlayer(float time_step);
 	void firePlayerBullet();
@@ -60,6 +71,8 @@ private:
 	void moveEnemy(float time_step);
 	void killEnemy(unsigned index);
 	void killPlayer();
+
+	void createExplosion(vec<2> pos, bool large);
 
 	void findPBTarget(unsigned b_index);
 };
@@ -92,20 +105,47 @@ void SceneGame::onCreate() {
 	}
 	//enemy
 	{
-		for (unsigned i = 0; i < 16; ++i) {
+		for (unsigned i = 0; i < e_count; ++i) {
 			enemies[i].first = createObject();
 			enemies[i].first->addComponent<Texture>()->set(0);
-			enemies[i].first->addComponent<Collider>();
 			enemies[i].second.isActive = false;
 		}
 	}
 	//player bullets
 	{
-		for (unsigned i = 0; i < 128; ++i) {
+		for (unsigned i = 0; i < pb_count; ++i) {
 			p_bullets[i].first = createObject();
-			p_bullets[i].first->addComponent<Texture>()->set(0);
-			p_bullets[i].first->addComponent<Collider>();
+			p_bullets[i].first->addComponent<Texture>()->set(1);
 			p_bullets[i].second.isActive = false;
+		}
+	}
+	//explosions
+	{
+		for (unsigned i = 0; i < exp_count; ++i) {
+			explosions[i].first = createObject();
+			explosions[i].first->addComponent<Texture>()->set(1);
+			auto animation = explosions[i].first->addComponent<Animation>();
+			auto b_explosion = std::make_shared<FrameSet>(8, Repeat::FORWARD);
+			b_explosion->setFrameData(0, Frame(SpriteSheet::Explosion_Big::Orange::_1, 0.125f));
+			b_explosion->setFrameData(1, Frame(SpriteSheet::Explosion_Big::Orange::_2, 0.125f));
+			b_explosion->setFrameData(2, Frame(SpriteSheet::Explosion_Big::Orange::_3, 0.125f));
+			b_explosion->setFrameData(3, Frame(SpriteSheet::Explosion_Big::Orange::_4, 0.125f));
+			b_explosion->setFrameData(4, Frame(SpriteSheet::Explosion_Big::Orange::_5, 0.125f));
+			b_explosion->setFrameData(5, Frame(SpriteSheet::Explosion_Big::Orange::_6, 0.125f));
+			b_explosion->setFrameData(6, Frame(SpriteSheet::Explosion_Big::Orange::_7, 0.125f));
+			b_explosion->setFrameData(7, Frame(SpriteSheet::Explosion_Big::Orange::_8, 0.125f));
+			auto e_explosion = std::make_shared<FrameSet>(8, Repeat::FORWARD);
+			e_explosion->setFrameData(0, Frame(SpriteSheet::Explosion_Small::Red::_1, 0.125f));
+			e_explosion->setFrameData(1, Frame(SpriteSheet::Explosion_Small::Red::_2, 0.125f));
+			e_explosion->setFrameData(2, Frame(SpriteSheet::Explosion_Small::Red::_3, 0.125f));
+			e_explosion->setFrameData(3, Frame(SpriteSheet::Explosion_Small::Red::_4, 0.125f));
+			e_explosion->setFrameData(4, Frame(SpriteSheet::Explosion_Small::Red::_5, 0.125f));
+			e_explosion->setFrameData(5, Frame(SpriteSheet::Explosion_Small::Red::_6, 0.125f));
+			e_explosion->setFrameData(6, Frame(SpriteSheet::Explosion_Small::Red::_7, 0.125f));
+			e_explosion->setFrameData(7, Frame(SpriteSheet::Explosion_Small::Red::_8, 0.125f));
+			animation->addAnimation("small", b_explosion);
+			animation->addAnimation("large", e_explosion);
+			explosions[i].second.isActive = false;
 		}
 	}
 }
@@ -123,6 +163,7 @@ void SceneGame::update(float time_step) {
 	updateEnemies(time_step);
 	updatePlayerBullets(time_step);
 	updateEnemyBullets(time_step);
+	updateExplosions(time_step);
 }
 
 inline void SceneGame::updatePlayer(float time_step) {
@@ -148,7 +189,7 @@ inline void SceneGame::updateEnemies(float time_step) {
 }
 
 inline void SceneGame::updatePlayerBullets(float time_step) {
-	for (unsigned i = 0; i < 128; ++i) {
+	for (unsigned i = 0; i < pb_count; ++i) {
 		if (p_bullets[i].second.isActive) {
 			unsigned target_index = p_bullets[i].second.target_index;
 			auto b_transform = p_bullets[i].first->transform;
@@ -163,6 +204,7 @@ inline void SceneGame::updatePlayerBullets(float time_step) {
 				b_transform->setRot(nex_dir);
 				b_transform->move(speed * cos(nex_dir + PI * 0.5f) * time_step, speed * sin(nex_dir + PI * 0.5f) * time_step);
 			} else {
+				createExplosion(b_transform->getPosition(), true);
 				p_bullets[i].second.isActive = false;
 				p_bullets[i].first->transform->setPos(1000.0f, 1000.0f);
 				killEnemy(target_index);
@@ -172,6 +214,20 @@ inline void SceneGame::updatePlayerBullets(float time_step) {
 }
 
 inline void SceneGame::updateEnemyBullets(float time_step) {
+}
+
+inline void SceneGame::updateExplosions(float time_step) {
+	for (unsigned i = 0; i < exp_count; ++i) {
+		if (explosions[i].second.isActive) {
+			explosions[i].second.duration += time_step;
+			if (explosions[i].second.duration > 1.0f) {
+				explosions[i].second.isActive = false;
+				explosions[i].second.duration = 0.0f;
+				explosions[i].first->transform->setScale(0.0f, 0.0f);
+				explosions[i].first->transform->setPos(1000.0f, 1000.0f);
+			}
+		}
+	}
 }
 
 inline void SceneGame::movePlayer(float time_step) {
@@ -203,7 +259,7 @@ inline void SceneGame::movePlayer(float time_step) {
 
 inline void SceneGame::firePlayerBullet() {
 	if (p_stat.cooldown <= 0.0f && input.isKeyPressed(Input::Key::LSHIFT)) {
-		for (unsigned int i = 0; i < 128; ++i) {
+		for (unsigned int i = 0; i < pb_count; ++i) {
 			if (p_bullets[i].second.isActive == false) {
 				p_bullets[i].second.isActive = true;
 				p_bullets[i].second.speed = p_stat.speed * 2;
@@ -244,7 +300,7 @@ inline void SceneGame::firePlayerBullet() {
 }
 
 inline void SceneGame::spawnEnemy() {
-	for (unsigned i = 0; i < 16; ++i) {
+	for (unsigned i = 0; i < e_count; ++i) {
 		if (enemies[i].second.isActive == false) {
 			enemies[i].second.isActive = true;
 			auto enemy = enemies[i].first;
@@ -287,7 +343,7 @@ inline void SceneGame::spawnEnemy() {
 
 inline void SceneGame::moveEnemy(float time_step) {
 	auto p_pos = player->getComponent<Transform>()->getPosition();
-	for (unsigned i = 0; i < 16; ++i) {
+	for (unsigned i = 0; i < e_count; ++i) {
 		if (enemies[i].second.isActive) {
 			auto enemy = enemies[i].first;
 			auto stat = enemies[i].second;
@@ -313,12 +369,32 @@ inline void SceneGame::killEnemy(unsigned index) {
 inline void SceneGame::killPlayer() {
 }
 
+inline void SceneGame::createExplosion(vec<2> pos, bool large) {
+	for (unsigned i = 0; i < exp_count; ++i) {
+		if (!explosions[i].second.isActive) {
+
+			explosions[i].second.isActive = true;
+			explosions[i].second.duration = 0.0f;
+			auto explosion = explosions[i].first;
+			explosion->transform->setPos(pos);
+			if (large) {
+				explosion->getComponent<Transform>()->setScale(box_size, box_size);
+				explosion->getComponent<Animation>()->setAnimation("large");
+			} else {
+				explosion->getComponent<Transform>()->setScale(box_size * 0.5f, box_size * 0.5f);
+				explosion->getComponent<Animation>()->setAnimation("small");
+			}
+			return;
+		}
+	}
+}
+
 inline void SceneGame::findPBTarget(unsigned b_index) {
 	unsigned nearest = 0;
 	float max_dot_prod = -1;
 	auto b_transform = p_bullets[b_index].first->transform;
 	float b_dir = b_transform->getRotation() + PI * 0.5f;
-	for (unsigned i = 0; i < 16; ++i) {
+	for (unsigned i = 0; i < e_count; ++i) {
 		if (enemies[i].second.isActive) {
 			auto e_transform = enemies[i].first->transform;
 			auto norm_disp = (e_transform->getPosition() - b_transform->getPosition());

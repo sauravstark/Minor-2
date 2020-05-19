@@ -50,6 +50,7 @@ inline void Animation::setAnimation(std::string state) {
 		if (animation != animations.end()) {
 			active_animation.first = animation->first;
 			active_animation.second = animation->second;
+			active_animation.second->reset();
 		}
 	}
 }
