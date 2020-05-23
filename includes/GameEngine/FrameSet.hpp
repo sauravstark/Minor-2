@@ -9,7 +9,7 @@ enum Repeat { FORWARD, REVERSE, ALTERNATE, ALTERNATE_REVERSE };
 struct Frame {
 	vec<4> frame_span;
 	float frame_duration;
-	Frame(vec<4> span = vec<4>(), float duration = 0.25f);
+	Frame(vec<4> span = vec<4>(), float duration = 0.125f);
 };
 
 class FrameSet {

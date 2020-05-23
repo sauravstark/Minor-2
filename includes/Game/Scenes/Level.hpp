@@ -81,7 +81,7 @@ void SceneGame::onCreate() {
 
 		auto texture = player->addComponent<Texture>();
 		texture->set(0);
-		texture->setSprite(SpriteSheet::Player::red_fighter5);
+		//texture->setSprite(SpriteSheet::Player::red_fighter5);
 
 		auto collider = player->addComponent<Collider>();
 	}
@@ -128,6 +128,7 @@ inline void SceneGame::spawn_enemy() {
 
 	auto texture = new_enemy->addComponent<Texture>();
 	texture->set(0);
+	/*
 	switch (seed % 5)
 	{
 	case 0:
@@ -149,6 +150,7 @@ inline void SceneGame::spawn_enemy() {
 		transform->setScale(box_size * 0.5f, box_size);
 		break;
 	}
+	*/
 }
 
 inline void SceneGame::fireEnemyBullet(std::pair<std::shared_ptr<GameObject>, EnemyStats> pair) {
@@ -174,6 +176,7 @@ inline void SceneGame::fireEnemyBullet(std::pair<std::shared_ptr<GameObject>, En
 	transform->setRot(e_transform->getRotation());
 	auto texture = new_bullet->addComponent<Texture>();
 	texture->set(1);
+	/*
 	switch (enemy_stat.type)
 	{
 	case 0:
@@ -195,6 +198,7 @@ inline void SceneGame::fireEnemyBullet(std::pair<std::shared_ptr<GameObject>, En
 		//transform->setScale(box_size * 0.5f, box_size);
 		break;
 	}
+	*/
 }
 
 inline void SceneGame::move_player(float time_step) {

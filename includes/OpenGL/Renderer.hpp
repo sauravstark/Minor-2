@@ -47,7 +47,7 @@ Renderer::Renderer() :
 	shader.use();
 
 	texture(shader, 0, "assets/textures/player.png");
-	texture(shader, 1, "assets/textures/bullets.png");
+	texture(shader, 1, "assets/textures/tiles.png");
 	texture(shader, 2, "assets/textures/background.png");
 	
 	GLCall(glClearColor(0.0f, 0.0f, 1.0f, 1.0f));
