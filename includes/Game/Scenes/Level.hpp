@@ -13,6 +13,15 @@
 
 #include <vector>
 
+struct EnemyInfo {
+	unsigned pos_x, pos_y;
+	unsigned range_x, range_y;
+	unsigned phase;
+	EnemyInfo(unsigned px, unsigned py, unsigned rx, unsigned ry, unsigned ph) :
+	pos_x(px), pos_y(py), range_x(rx), range_y(ry), phase(ph)
+	{}
+};
+
 class SceneGame : public Scene {
 public:
 	void onCreate() override;
@@ -24,16 +33,22 @@ private:
 	std::shared_ptr<GameObject> player;
 	std::shared_ptr<GameObject> background;
 	std::vector<std::shared_ptr<GameObject>> tiles;
+	std::vector<std::pair<std::shared_ptr<GameObject>, EnemyInfo>> enemies;
 	std::vector<float> tile_heights;
 
 
 	void createTile(unsigned x, unsigned y, SubSprite type);
+	void createEnemy(unsigned x, unsigned y, unsigned range_x, unsigned range_y, unsigned phase, unsigned type);
+	void restart();
+
 	void updatePlayer(float time_step);
-	void updateEnemies(float time_step);
+	void updateEnemies();
 
 	float box_size = 50.0f;
 	float y_speed = 0.0f;
 	bool grounded = false;
+
+	float time_elapsed = 0.0f;
 };
 
 void SceneGame::onCreate() {
@@ -180,7 +195,14 @@ void SceneGame::onCreate() {
 	}
 	//enemy
 	{
-		//spawn_enemy();
+		createEnemy(2, 2, 2, 0, 0, 0);
+		createEnemy(4, 3, 3, 0, 1, 3);
+		createEnemy(7, 3, 0, 4, 2, 2);
+		createEnemy(9, 3, 0, 4, 3, 2);
+		createEnemy(11, 1, 2, 0, 4, 1);
+		createEnemy(17, 2, 2, 0, 5, 0);
+		createEnemy(21, 4, 3, 0, 6, 0);
+		createEnemy(26, 1, 3, 0, 7, 1);
 	}
 	//player
 	{
@@ -220,8 +242,9 @@ void SceneGame::captureInput() {
 }
 
 void SceneGame::update(float time_step) {
+	time_elapsed += time_step;
 	updatePlayer(time_step);
-	updateEnemies(time_step);
+	updateEnemies();
 }
 
 void SceneGame::createTile(unsigned x, unsigned y, SubSprite type) {
@@ -239,6 +262,59 @@ void SceneGame::createTile(unsigned x, unsigned y, SubSprite type) {
 	auto texture = tile->addComponent<Texture>();
 	texture->set(1);
 	texture->setSprite(type);
+}
+
+void SceneGame::createEnemy(unsigned x, unsigned y, unsigned range_x, unsigned range_y, unsigned phase, unsigned type) {
+	auto enemy = createObject();
+	
+	auto transform = enemy->addComponent<Transform>();
+	transform->setScale(box_size, box_size);
+
+	auto texture = enemy->addComponent<Texture>();
+	texture->set(0);
+
+	auto animation = enemy->addComponent<Animation>();
+
+	auto move = std::make_shared<FrameSet>(3, Repeat::ALTERNATE);
+
+	switch (type % 4)
+	{
+	case 0:
+		move->setFrameData(0, Frame(SpriteSheet::Enemy::walking_1));
+		move->setFrameData(1, Frame(SpriteSheet::Enemy::walking_2));
+		move->setFrameData(2, Frame(SpriteSheet::Enemy::walking_3));
+		break;
+	
+	case 1:
+		move->setFrameData(0, Frame(SpriteSheet::Enemy::floating_1));
+		move->setFrameData(1, Frame(SpriteSheet::Enemy::floating_2));
+		move->setFrameData(2, Frame(SpriteSheet::Enemy::floating_3));
+		break;
+
+	case 2:
+		move->setFrameData(0, Frame(SpriteSheet::Enemy::flying_1));
+		move->setFrameData(1, Frame(SpriteSheet::Enemy::flying_2));
+		move->setFrameData(2, Frame(SpriteSheet::Enemy::flying_3));
+		break;
+
+	case 3:
+		move->setFrameData(0, Frame(SpriteSheet::Enemy::spikey_1));
+		move->setFrameData(1, Frame(SpriteSheet::Enemy::spikey_2));
+		move->setFrameData(2, Frame(SpriteSheet::Enemy::spikey_3));
+		break;
+	}
+
+	animation->addAnimation("move", move);
+	animation->setAnimation("move");
+
+	enemies.push_back(std::make_pair(enemy, EnemyInfo(x, y, range_x, range_y, phase)));
+}
+
+void SceneGame::restart() {
+	auto transform = player->transform;
+	transform->setPos(-15.5f * box_size, -5.0f * box_size);
+	grounded = false;
+	y_speed = 0.0f;
 }
 
 void SceneGame::updatePlayer(float time_step) {
@@ -289,9 +365,7 @@ void SceneGame::updatePlayer(float time_step) {
 	transform->setY(next_y);
 
 	if (transform->getPosition()[1] < -450.0f ||transform->getPosition()[0] < -800.0f || transform->getPosition()[0] > 800.0f ) {
-		transform->setPos(-15.5f * box_size, -5.0f * box_size);
-		grounded = false;
-		y_speed = 0.0f;
+		restart();
 	}
 
 	if (grounded && x_mov != 0.0f)
@@ -300,8 +374,34 @@ void SceneGame::updatePlayer(float time_step) {
 		player->getComponent<Animation>()->setAnimation("idle");
 }
 
-void SceneGame::updateEnemies(float time_step) {
+void SceneGame::updateEnemies() {
+	float str_x = -800.0f + box_size / 2;
+	float str_y = -450.0f + box_size / 2;
 
+	auto p_pos = player->transform->getPosition();
+
+	for (auto obj : enemies) {
+		auto enemy = obj.first;
+		auto info = obj.second;
+
+		auto transform = enemy->getComponent<Transform>();
+
+		float ang = time_elapsed * PI * 0.25f + info.phase * PI / 6;
+		float mov = (sin(ang) + sin(ang * 3) + sin(ang * 5)) / 2.231f;
+
+		float centre_x = str_x + info.pos_x * box_size + info.range_x * box_size / 2 - (info.range_x > 0 ? box_size / 2 : 0);
+		float centre_y = str_y + info.pos_y * box_size + info.range_y * box_size / 2 - (info.range_y > 0 ? box_size / 2 : 0);
+
+		float x = centre_x + mov * (info.range_x * box_size / 2 - (info.range_x > 0 ? box_size / 4 : 0));
+		float y = centre_y + mov * (info.range_y * box_size / 2 - (info.range_y > 0 ? box_size / 4 : 0));
+
+		auto e_pos = vec<2>(x,y);
+
+		transform->setPos(e_pos);
+
+		if ((p_pos - e_pos).magnitude() < box_size / 2)
+			restart();
+	}
 }
 
 #endif // !SCENE_GAME_HPP
